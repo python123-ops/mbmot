@@ -1,0 +1,9 @@
+// MBMOT's core package intentionally depends only on moonbitlang/core.
+
+import {
+  "moonbitlang/core/double",
+} for "test"
+
+import {
+  "moonbitlang/core/double",
+} for "wbtest"

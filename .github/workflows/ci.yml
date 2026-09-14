@@ -1,0 +1,25 @@
+name: Core checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  moonbit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hustcer/setup-moonbit@v1.25
+        with:
+          version: 0.10.12+1634b282e
+          core-version: 0.10.12+1634b282e
+      - name: Show toolchain
+        run: moon version --all
+      - name: Check formatting
+        run: moon fmt --check
+      - name: Check all stable backends
+        run: moon check --target all --deny-warn
+      - name: Test all stable backends
+        run: moon test --target all --deny-warn
+      - name: Generate interfaces
+        run: moon info --target all

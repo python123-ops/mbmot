@@ -1,0 +1,93 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "python123-ops/mbmot"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+pub(all) suberror TrackerError {
+  InvalidBoundingBox(String)
+  InvalidScore(Double)
+  InvalidClassId(Int)
+  InvalidConfig(String)
+  NonIncreasingFrame(previous~ : Int, received~ : Int)
+  InvalidDetection(index~ : Int)
+} derive(@debug.Debug)
+
+// Types and methods
+pub struct BoundingBox {
+  x1 : Double
+  y1 : Double
+  x2 : Double
+  y2 : Double
+} derive(Eq, @debug.Debug)
+pub fn BoundingBox::new(Double, Double, Double, Double) -> Self raise TrackerError
+pub fn BoundingBox::x1(Self) -> Double
+pub fn BoundingBox::x2(Self) -> Double
+pub fn BoundingBox::y1(Self) -> Double
+pub fn BoundingBox::y2(Self) -> Double
+
+pub struct Detection {
+  bbox : BoundingBox
+  score : Double
+  class_id : Int
+} derive(Eq, @debug.Debug)
+pub fn Detection::bbox(Self) -> BoundingBox
+pub fn Detection::class_id(Self) -> Int
+pub fn Detection::new(BoundingBox, Double, Int) -> Self raise TrackerError
+pub fn Detection::score(Self) -> Double
+
+type FrameTracks derive(Eq, @debug.Debug)
+pub fn FrameTracks::lost(Self) -> Array[Int]
+pub fn FrameTracks::removed(Self) -> Array[Int]
+pub fn FrameTracks::tracks(Self) -> Array[Track]
+
+pub struct Track {
+  track_id : Int
+  bbox : BoundingBox
+  class_id : Int
+  score : Double
+  first_frame : Int
+  last_frame : Int
+  hits : Int
+} derive(Eq, @debug.Debug)
+pub fn Track::bbox(Self) -> BoundingBox
+pub fn Track::class_id(Self) -> Int
+pub fn Track::first_frame(Self) -> Int
+pub fn Track::hits(Self) -> Int
+pub fn Track::last_frame(Self) -> Int
+pub fn Track::score(Self) -> Double
+pub fn Track::track_id(Self) -> Int
+
+type Tracker
+pub fn Tracker::new(TrackerConfig) -> Self
+pub fn Tracker::reset(Self) -> Unit
+pub fn Tracker::update(Self, Int, Array[Detection]) -> FrameTracks raise TrackerError
+
+pub struct TrackerConfig {
+  high_score_threshold : Double
+  low_score_threshold : Double
+  new_track_threshold : Double
+  first_match_max_cost : Double
+  second_match_max_cost : Double
+  max_lost_frames : Int
+  min_hits : Int
+  fuse_score : Bool
+} derive(Eq, @debug.Debug)
+pub fn TrackerConfig::default() -> Self
+pub fn TrackerConfig::first_match_max_cost(Self) -> Double
+pub fn TrackerConfig::fuse_score(Self) -> Bool
+pub fn TrackerConfig::high_score_threshold(Self) -> Double
+pub fn TrackerConfig::low_score_threshold(Self) -> Double
+pub fn TrackerConfig::max_lost_frames(Self) -> Int
+pub fn TrackerConfig::min_hits(Self) -> Int
+pub fn TrackerConfig::new(high_score_threshold~ : Double, low_score_threshold~ : Double, new_track_threshold~ : Double, first_match_max_cost~ : Double, second_match_max_cost~ : Double, max_lost_frames~ : Int, min_hits~ : Int, fuse_score~ : Bool) -> Self raise TrackerError
+pub fn TrackerConfig::new_track_threshold(Self) -> Double
+pub fn TrackerConfig::second_match_max_cost(Self) -> Double
+
+// Type aliases
+
+// Traits
