@@ -1,0 +1,85 @@
+# MBMOT
+
+MBMOT 是一个用 MoonBit 编写的在线多目标跟踪库。它不读取图片，也不绑定某个检测模型；调用方逐帧交给它检测框、置信度和类别，得到按 `track_id` 排序的可见轨迹，以及本帧进入 `lost` 或 `removed` 的编号。
+
+跟踪器采用八维 `xyah + velocity` 运动状态。高分检测先与活动、暂定和仍在保留期内的 lost 轨迹关联，未匹配的活动轨迹再尝试低分检测。低分框能维持正在活动的身份，但不会新建编号或恢复已经 lost 的轨迹。
+
+## 从源码运行
+
+需要安装 MoonBit 工具链。检出仓库后可以运行四个稳定后端的检查和测试：
+
+```bash
+moon fmt --check
+moon check --target all --deny-warn
+moon test --target all --deny-warn
+```
+
+核心包的基本调用如下：
+
+```moonbit
+let tracker = @mbmot.Tracker::new(@mbmot.TrackerConfig::default())
+let box = @mbmot.BoundingBox::new(12.0, 20.0, 52.0, 80.0)
+let detection = @mbmot.Detection::new(box, 0.91, 0)
+let frame = tracker.update(1, [detection])
+
+let track = frame.tracks()[0]
+assert_eq(track.track_id(), 1)
+assert_eq(track.hits(), 1)
+```
+
+`BoundingBox::from_xywh` 接受左上角加宽高，`BoundingBox::from_cxcywh` 接受中心点加宽高，后者可直接承接 YOLO 常见的坐标顺序。两种构造都保留输入尺度：像素坐标和归一化坐标可以使用，但同一条流必须保持一致，库不会读取图像尺寸替调用方缩放。
+
+## 逐帧契约
+
+边界框使用连续坐标 `xyxy`，面积不采用像素端点的 `+1` 约定。坐标必须有限且满足 `x2 > x1`、`y2 > y1`；置信度位于 `[0, 1]`，类别编号非负。不同类别永不关联。
+
+`frame_id` 必须严格递增。跳帧按实际帧差推进运动和失踪时间，因此一次跳过若干帧与逐帧提交空检测会到达相同的内部状态。任何非法帧都会整帧拒绝，不消耗编号，也不部分更新已有轨迹。
+
+公开的 `Track::bbox()` 始终是最近一次真实检测框；预测框只参与关联。`Tracker::status()` 可读取活动、暂定和 lost 数量，但不会暴露协方差或预测位置。`reset()` 会清空流状态，并让下一个身份重新从 1 开始。
+
+默认参数如下：
+
+| 参数 | 值 | 作用 |
+| --- | ---: | --- |
+| `high_score_threshold` | 0.25 | 第一阶段检测下限 |
+| `low_score_threshold` | 0.10 | 第二阶段检测下限 |
+| `new_track_threshold` | 0.25 | 新建身份的最低分数 |
+| `first_match_max_cost` | 0.80 | 高分关联最大代价 |
+| `second_match_max_cost` | 0.50 | 低分关联最大代价 |
+| `max_lost_frames` | 30 | lost 身份的保留帧数 |
+| `min_hits` | 1 | 轨迹可见前所需命中数 |
+| `fuse_score` | `true` | 第一阶段是否融合检测分数 |
+
+## NDJSON 重放
+
+原生重放命令从标准输入逐行读取：
+
+```json
+{"frame":1,"detections":[{"xyxy":[0,0,10,10],"score":0.95,"class_id":0}]}
+```
+
+在 Bash 中运行仓库内的四帧样例：
+
+```bash
+moon run src/replay --target native < examples/replay.ndjson
+```
+
+PowerShell 可以通过 `cmd` 使用同一个输入文件：
+
+```powershell
+cmd /c "moon run src/replay --target native < examples\replay.ndjson"
+```
+
+每个成功输入行产生一个输出行：
+
+```json
+{"frame":1,"tracks":[{"track_id":1,"xyxy":[0,0,10,10],"score":0.95,"class_id":0,"first_frame":1,"last_frame":1,"hits":1}],"lost":[],"removed":[]}
+```
+
+字段顺序和轨迹顺序固定，仓库中的 [`examples/replay.expected.ndjson`](examples/replay.expected.ndjson) 是完整样例输出。遇到 JSON、检测值或帧号错误时，命令把物理输入行号写到标准错误并以非零状态退出；此前已经写出的完整输出行仍然有效。
+
+MBMOT 处理单摄像头、轴对齐检测框，不使用外观特征。身份延续由类别、运动预测、IoU、检测分数和生命周期共同决定。
+
+## License
+
+[MIT](LICENSE)

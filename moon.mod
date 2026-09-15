@@ -10,6 +10,8 @@ keywords = [ "tracking", "computer-vision", "mot" ]
 
 description = "Detector-agnostic online multi-object tracking in MoonBit"
 
+readme = "README.md"
+
 source = "src"
 
 import {

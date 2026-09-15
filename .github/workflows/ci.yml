@@ -15,6 +15,8 @@ jobs:
           core-version: 0.10.12+1634b282e
       - name: Show toolchain
         run: moon version --all
+      - name: Refresh package registry
+        run: moon update
       - name: Check formatting
         run: moon fmt --check
       - name: Check all stable backends
