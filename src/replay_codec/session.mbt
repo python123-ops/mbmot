@@ -23,7 +23,7 @@ pub struct ReplaySession {
 
 ///|
 pub fn ReplaySession::new(config : @mbmot.TrackerConfig) -> ReplaySession {
-  { tracker: @mbmot.Tracker::new(config), lines_read: 0 }
+  { tracker: @mbmot.Tracker::new(config), lines_read: 0, }
 }
 
 ///|

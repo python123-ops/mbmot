@@ -109,7 +109,7 @@ fn optimal_matches(
     if detection_index >= 0 && detection_index < detection_count {
       let cost = costs[track_index][detection_index]
       if is_finite(cost) && cost >= 0.0 && cost <= max_cost {
-        matches.push({ track_index, detection_index })
+        matches.push({ track_index, detection_index, })
       }
     }
   }

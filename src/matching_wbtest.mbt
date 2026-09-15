@@ -23,7 +23,7 @@ fn brute_force_from(
   used : Array[Bool],
 ) -> MatchObjective {
   if row == costs.length() {
-    return { count: 0, cost: 0.0 }
+    return { count: 0, cost: 0.0, }
   }
   let mut best = brute_force_from(costs, max_cost, row + 1, used)
   for column in 0..<used.length() {
@@ -50,7 +50,7 @@ fn brute_force_objective(
   max_cost : Double,
 ) -> MatchObjective {
   if costs.length() == 0 || costs[0].length() == 0 {
-    return { count: 0, cost: 0.0 }
+    return { count: 0, cost: 0.0, }
   }
   brute_force_from(costs, max_cost, 0, Array::make(costs[0].length(), false))
 }
@@ -64,7 +64,7 @@ fn result_objective(
   for pair in matches {
     total += costs[pair.track_index][pair.detection_index]
   }
-  { count: matches.length(), cost: total }
+  { count: matches.length(), cost: total, }
 }
 
 ///|

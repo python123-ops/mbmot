@@ -39,7 +39,7 @@ pub fn MotObject::new(
   if confidence.is_nan() || confidence.is_inf() {
     raise InvalidConfig("MOT confidence must be finite")
   }
-  { frame, identity, bbox, confidence }
+  { frame, identity, bbox, confidence, }
 }
 
 ///|
@@ -83,7 +83,7 @@ pub fn EvaluationConfig::new(
 
 ///|
 pub fn EvaluationConfig::default() -> EvaluationConfig {
-  { match_iou_threshold: 0.5 }
+  { match_iou_threshold: 0.5, }
 }
 
 ///|

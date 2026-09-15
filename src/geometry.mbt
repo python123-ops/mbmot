@@ -30,7 +30,7 @@ pub fn BoundingBox::new(
   x2 : Double,
   y2 : Double,
 ) -> BoundingBox raise TrackerError {
-  let bbox = { x1, y1, x2, y2 }
+  let bbox = { x1, y1, x2, y2, }
   if !bbox.valid() {
     raise InvalidBoundingBox(
       "coordinates must be finite and satisfy x2 > x1 and y2 > y1",
