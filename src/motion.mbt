@@ -78,7 +78,7 @@ fn MotionState::init(bbox : BoundingBox) -> MotionState {
   for index in 0..<8 {
     covariance[matrix_index(index, index, 8)] = squared(deviations[index])
   }
-  { mean, covariance, }
+  { mean, covariance }
 }
 
 ///|
@@ -124,7 +124,7 @@ fn MotionState::predict(
   for index in 0..<8 {
     covariance[matrix_index(index, index, 8)] += squared(deviations[index])
   }
-  { mean, covariance, }
+  { mean, covariance }
 }
 
 ///|
@@ -288,7 +288,7 @@ fn MotionState::correct_checked(
       covariance[diagonal] = 1.0e-12
     }
   }
-  Some({ mean, covariance, })
+  Some({ mean, covariance })
 }
 
 ///|

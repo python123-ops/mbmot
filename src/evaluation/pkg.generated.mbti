@@ -1,0 +1,82 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "python123-ops/mbmot/evaluation"
+
+import {
+  "moonbitlang/core/debug",
+  "python123-ops/mbmot",
+}
+
+// Values
+pub fn encode_report_json(EvaluationReport) -> String
+
+pub fn encode_tracker_results(Array[MotObject]) -> String
+
+pub fn evaluate(Array[MotObject], Array[MotObject], EvaluationConfig) -> EvaluationReport
+
+pub fn objects_from_tracks(Array[@mbmot.Track]) -> Array[MotObject]
+
+pub fn parse_ground_truth(StringView) -> Array[MotObject] raise MotError
+
+pub fn parse_tracker_results(StringView) -> Array[MotObject] raise MotError
+
+// Errors
+pub(all) suberror MotError {
+  InvalidConfig(String)
+  InvalidMotLine(line~ : Int, message~ : String)
+}
+pub fn MotError::message(Self) -> String
+
+// Types and methods
+pub struct EvaluationConfig {
+  match_iou_threshold : Double
+} derive(Eq, @debug.Debug)
+pub fn EvaluationConfig::default() -> Self
+pub fn EvaluationConfig::match_iou_threshold(Self) -> Double
+pub fn EvaluationConfig::new(match_iou_threshold~ : Double) -> Self raise MotError
+
+pub struct EvaluationReport {
+  match_iou_threshold : Double
+  frames : Int
+  ground_truth_detections : Int
+  tracker_detections : Int
+  true_positives : Int
+  false_positives : Int
+  false_negatives : Int
+  identity_switches : Int
+  matched_iou_sum : Double
+  id_true_positives : Int
+  id_false_positives : Int
+  id_false_negatives : Int
+} derive(Eq, @debug.Debug)
+pub fn EvaluationReport::false_negatives(Self) -> Int
+pub fn EvaluationReport::false_positives(Self) -> Int
+pub fn EvaluationReport::frames(Self) -> Int
+pub fn EvaluationReport::ground_truth_detections(Self) -> Int
+pub fn EvaluationReport::id_false_negatives(Self) -> Int
+pub fn EvaluationReport::id_false_positives(Self) -> Int
+pub fn EvaluationReport::id_precision(Self) -> Double
+pub fn EvaluationReport::id_recall(Self) -> Double
+pub fn EvaluationReport::id_true_positives(Self) -> Int
+pub fn EvaluationReport::identity_switches(Self) -> Int
+pub fn EvaluationReport::idf1(Self) -> Double
+pub fn EvaluationReport::match_iou_threshold(Self) -> Double
+pub fn EvaluationReport::mota(Self) -> Double
+pub fn EvaluationReport::motp(Self) -> Double
+pub fn EvaluationReport::tracker_detections(Self) -> Int
+pub fn EvaluationReport::true_positives(Self) -> Int
+
+pub struct MotObject {
+  frame : Int
+  identity : Int
+  bbox : @mbmot.BoundingBox
+  confidence : Double
+} derive(Eq, @debug.Debug)
+pub fn MotObject::bbox(Self) -> @mbmot.BoundingBox
+pub fn MotObject::confidence(Self) -> Double
+pub fn MotObject::frame(Self) -> Int
+pub fn MotObject::identity(Self) -> Int
+pub fn MotObject::new(Int, Int, @mbmot.BoundingBox, Double) -> Self raise MotError
+
+// Type aliases
+
+// Traits

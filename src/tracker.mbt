@@ -23,7 +23,7 @@ struct Tracker {
 ///|
 /// Creates an empty tracker with a validated configuration.
 pub fn Tracker::new(config : TrackerConfig) -> Tracker {
-  { config, states: [], next_id: 1, last_frame: None, }
+  { config, states: [], next_id: 1, last_frame: None }
 }
 
 ///|
@@ -47,7 +47,7 @@ fn TrackedState::predict(self : TrackedState) -> TrackedState {
 
 ///|
 fn TrackedState::mark_lost(self : TrackedState) -> TrackedState {
-  { track: self.track, motion: self.motion, lifecycle: Lost, }
+  { track: self.track, motion: self.motion, lifecycle: Lost }
 }
 
 ///|
@@ -316,7 +316,7 @@ pub fn Tracker::update(
   self.states = next_states
   self.next_id = next_id
   self.last_frame = Some(frame_id)
-  { tracks: visible, lost, removed, }
+  { tracks: visible, lost, removed }
 }
 
 ///|
@@ -344,5 +344,5 @@ pub fn Tracker::status(self : Tracker) -> TrackerStatus {
       lost_count += 1
     }
   }
-  { last_frame: self.last_frame, active_count, tentative_count, lost_count, }
+  { last_frame: self.last_frame, active_count, tentative_count, lost_count }
 }

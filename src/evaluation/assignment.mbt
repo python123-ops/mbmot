@@ -1,10 +1,4 @@
 ///|
-priv struct MatchPair {
-  track_index : Int
-  detection_index : Int
-}
-
-///|
 fn hungarian(square : Array[Array[Double]]) -> Array[Int] {
   let size = square.length()
   if size == 0 {
@@ -71,31 +65,31 @@ fn hungarian(square : Array[Array[Double]]) -> Array[Int] {
 }
 
 ///|
-fn optimal_matches(
-  costs : Array[Array[Double]],
-  max_cost : Double,
-) -> Array[MatchPair] {
-  let track_count = costs.length()
-  if track_count == 0 {
+fn maximum_iou_assignment(
+  similarities : Array[Array[Double]],
+  threshold : Double,
+) -> Array[(Int, Int)] {
+  let row_count = similarities.length()
+  if row_count == 0 {
     return []
   }
-  let detection_count = costs[0].length()
-  if detection_count == 0 {
+  let column_count = similarities[0].length()
+  if column_count == 0 {
     return []
   }
-  let size = track_count + detection_count
+  let size = row_count + column_count
   let unmatched_cost = size.to_double() + 1.0
   let invalid_cost = unmatched_cost * 3.0
   let square = Array::makei(size, row => {
     Array::makei(size, column => {
-      if row < track_count && column < detection_count {
-        let cost = costs[row][column]
-        if is_finite(cost) && cost >= 0.0 && cost <= max_cost {
-          cost
+      if row < row_count && column < column_count {
+        let similarity = similarities[row][column]
+        if similarity >= threshold {
+          1.0 - similarity
         } else {
           invalid_cost
         }
-      } else if row < track_count || column < detection_count {
+      } else if row < row_count || column < column_count {
         unmatched_cost
       } else {
         0.0
@@ -103,14 +97,13 @@ fn optimal_matches(
     })
   })
   let assignment = hungarian(square)
-  let matches : Array[MatchPair] = []
-  for track_index in 0..<track_count {
-    let detection_index = assignment[track_index]
-    if detection_index >= 0 && detection_index < detection_count {
-      let cost = costs[track_index][detection_index]
-      if is_finite(cost) && cost >= 0.0 && cost <= max_cost {
-        matches.push({ track_index, detection_index })
-      }
+  let matches : Array[(Int, Int)] = []
+  for row in 0..<row_count {
+    let column = assignment[row]
+    if column >= 0 &&
+      column < column_count &&
+      similarities[row][column] >= threshold {
+      matches.push((row, column))
     }
   }
   matches

@@ -1,0 +1,9 @@
+import {
+  "python123-ops/mbmot",
+  "moonbitlang/core/string",
+}
+
+import {
+  "python123-ops/mbmot",
+  "moonbitlang/core/double",
+} for "test"

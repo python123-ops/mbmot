@@ -86,6 +86,24 @@ cmd /c "moon run src/replay --target native < examples\replay.ndjson"
 
 MBMOT 处理单摄像头、轴对齐检测框，不使用外观特征。身份延续由类别、运动预测、IoU、检测分数和生命周期共同决定。
 
+## MOT 序列评测
+
+仓库中的 `evaluation` 包读取 MOTChallenge 的逗号分隔二维框。标注文件接受九列或十列，第七列为零的标注不参与计数；跟踪结果要求十列，并可由 `encode_tracker_results` 生成。默认按 `IoU >= 0.5` 匹配，报告 TP、FP、FN、身份切换、MOTA、平均匹配 IoU（MOTP）以及 IDP、IDR、IDF1。
+
+原生命令接收标注和跟踪结果两个文件：
+
+```bash
+moon run src/evaluate --target native -- examples/mot/ground-truth.txt examples/mot/tracker-results.txt
+```
+
+仓库样例会输出：
+
+```json
+{"match_iou_threshold":0.5,"frames":3,"ground_truth_detections":3,"tracker_detections":4,"true_positives":3,"false_positives":1,"false_negatives":0,"identity_switches":1,"mota":0.3333333333333333,"motp":1,"id_true_positives":2,"id_false_positives":2,"id_false_negatives":1,"id_precision":0.5,"id_recall":0.6666666666666666,"idf1":0.5714285714285714}
+```
+
+这里的评测用于自有序列回归，不执行 MOTChallenge 对行人类别、遮挡区域和 distractor 类别的官方预处理。需要提交排行榜时，应再用 [TrackEval](https://github.com/JonathonLuiten/TrackEval) 复核同一份轨迹结果。
+
 ## License
 
 [MIT](LICENSE)

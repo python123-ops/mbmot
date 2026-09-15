@@ -1,0 +1,1 @@
+{"match_iou_threshold":0.5,"frames":3,"ground_truth_detections":3,"tracker_detections":4,"true_positives":3,"false_positives":1,"false_negatives":0,"identity_switches":1,"mota":0.3333333333333333,"motp":1,"id_true_positives":2,"id_false_positives":2,"id_false_negatives":1,"id_precision":0.5,"id_recall":0.6666666666666666,"idf1":0.5714285714285714}

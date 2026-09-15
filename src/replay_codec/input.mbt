@@ -84,5 +84,5 @@ pub fn parse_frame_line(line : StringView) -> ReplayFrame raise ReplayError {
     }
     detections.push(detection)
   }
-  { frame: input.frame, detections, }
+  { frame: input.frame, detections }
 }

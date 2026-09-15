@@ -31,7 +31,7 @@ pub fn Detection::new(
   if class_id < 0 {
     raise InvalidClassId(class_id)
   }
-  { bbox, score, class_id, }
+  { bbox, score, class_id }
 }
 
 ///|
