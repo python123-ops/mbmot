@@ -1,0 +1,30 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "python123-ops/mbmot/replay"
+
+import {
+  "moonbitlang/core/debug",
+  "python123-ops/mbmot",
+}
+
+// Values
+pub fn parse_frame_line(StringView) -> ReplayFrame raise ReplayError
+
+// Errors
+pub(all) suberror ReplayError {
+  InvalidJson(String)
+  InvalidFrame(String)
+  InvalidDetection(index~ : Int, reason~ : String)
+} derive(Eq, @debug.Debug)
+pub fn ReplayError::message(Self) -> String
+
+// Types and methods
+pub struct ReplayFrame {
+  frame : Int
+  detections : Array[@mbmot.Detection]
+}
+pub fn ReplayFrame::detections(Self) -> Array[@mbmot.Detection]
+pub fn ReplayFrame::frame(Self) -> Int
+
+// Type aliases
+
+// Traits
