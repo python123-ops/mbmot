@@ -40,6 +40,37 @@ pub fn BoundingBox::new(
 }
 
 ///|
+/// Creates a box from its top-left corner, width, and height.
+pub fn BoundingBox::from_xywh(
+  x : Double,
+  y : Double,
+  width : Double,
+  height : Double,
+) -> BoundingBox raise TrackerError {
+  BoundingBox::new(x, y, x + width, y + height)
+}
+
+///|
+/// Creates a box from its center, width, and height.
+///
+/// This is the coordinate order commonly emitted by YOLO-family detectors.
+pub fn BoundingBox::from_cxcywh(
+  center_x : Double,
+  center_y : Double,
+  width : Double,
+  height : Double,
+) -> BoundingBox raise TrackerError {
+  let half_width = width / 2.0
+  let half_height = height / 2.0
+  BoundingBox::new(
+    center_x - half_width,
+    center_y - half_height,
+    center_x + half_width,
+    center_y + half_height,
+  )
+}
+
+///|
 /// Returns the left coordinate.
 pub fn BoundingBox::x1(self : BoundingBox) -> Double {
   self.x1
@@ -61,6 +92,24 @@ pub fn BoundingBox::x2(self : BoundingBox) -> Double {
 /// Returns the bottom coordinate.
 pub fn BoundingBox::y2(self : BoundingBox) -> Double {
   self.y2
+}
+
+///|
+/// Returns the box as its top-left corner, width, and height.
+pub fn BoundingBox::to_xywh(
+  self : BoundingBox,
+) -> (Double, Double, Double, Double) {
+  (self.x1, self.y1, self.x2 - self.x1, self.y2 - self.y1)
+}
+
+///|
+/// Returns the box as its center, width, and height.
+pub fn BoundingBox::to_cxcywh(
+  self : BoundingBox,
+) -> (Double, Double, Double, Double) {
+  let width = self.x2 - self.x1
+  let height = self.y2 - self.y1
+  (self.x1 + width / 2.0, self.y1 + height / 2.0, width, height)
 }
 
 ///|

@@ -24,7 +24,11 @@ pub struct BoundingBox {
   x2 : Double
   y2 : Double
 } derive(Eq, @debug.Debug)
+pub fn BoundingBox::from_cxcywh(Double, Double, Double, Double) -> Self raise TrackerError
+pub fn BoundingBox::from_xywh(Double, Double, Double, Double) -> Self raise TrackerError
 pub fn BoundingBox::new(Double, Double, Double, Double) -> Self raise TrackerError
+pub fn BoundingBox::to_cxcywh(Self) -> (Double, Double, Double, Double)
+pub fn BoundingBox::to_xywh(Self) -> (Double, Double, Double, Double)
 pub fn BoundingBox::x1(Self) -> Double
 pub fn BoundingBox::x2(Self) -> Double
 pub fn BoundingBox::y1(Self) -> Double
