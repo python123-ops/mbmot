@@ -16,6 +16,7 @@ pub(all) suberror TrackerError {
   NonIncreasingFrame(previous~ : Int, received~ : Int)
   InvalidDetection(index~ : Int)
 } derive(@debug.Debug)
+pub fn TrackerError::message(Self) -> String
 
 // Types and methods
 pub struct BoundingBox {

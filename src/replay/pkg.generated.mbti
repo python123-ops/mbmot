@@ -7,6 +7,8 @@ import {
 }
 
 // Values
+pub fn encode_frame_result(Int, @mbmot.FrameTracks) -> String
+
 pub fn parse_frame_line(StringView) -> ReplayFrame raise ReplayError
 
 // Errors
@@ -17,6 +19,12 @@ pub(all) suberror ReplayError {
 } derive(Eq, @debug.Debug)
 pub fn ReplayError::message(Self) -> String
 
+pub(all) suberror ReplayLineError {
+  ReplayLineError(line~ : Int, reason~ : String)
+} derive(Eq, @debug.Debug)
+pub fn ReplayLineError::line(Self) -> Int
+pub fn ReplayLineError::message(Self) -> String
+
 // Types and methods
 pub struct ReplayFrame {
   frame : Int
@@ -24,6 +32,14 @@ pub struct ReplayFrame {
 }
 pub fn ReplayFrame::detections(Self) -> Array[@mbmot.Detection]
 pub fn ReplayFrame::frame(Self) -> Int
+
+pub struct ReplaySession {
+  tracker : @mbmot.Tracker
+  mut lines_read : Int
+}
+pub fn ReplaySession::lines_read(Self) -> Int
+pub fn ReplaySession::new(@mbmot.TrackerConfig) -> Self
+pub fn ReplaySession::process_line(Self, StringView) -> String raise ReplayLineError
 
 // Type aliases
 
