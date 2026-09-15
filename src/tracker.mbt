@@ -326,3 +326,23 @@ pub fn Tracker::reset(self : Tracker) -> Unit {
   self.next_id = 1
   self.last_frame = None
 }
+
+///|
+/// Summarizes retained identity state without exposing motion internals.
+pub fn Tracker::status(self : Tracker) -> TrackerStatus {
+  let mut active_count = 0
+  let mut tentative_count = 0
+  let mut lost_count = 0
+  for state in self.states {
+    if state.active() {
+      if state.confirmed(self.config) {
+        active_count += 1
+      } else {
+        tentative_count += 1
+      }
+    } else {
+      lost_count += 1
+    }
+  }
+  { last_frame: self.last_frame, active_count, tentative_count, lost_count, }
+}

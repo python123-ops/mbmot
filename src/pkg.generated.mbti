@@ -69,6 +69,7 @@ pub fn Track::track_id(Self) -> Int
 type Tracker
 pub fn Tracker::new(TrackerConfig) -> Self
 pub fn Tracker::reset(Self) -> Unit
+pub fn Tracker::status(Self) -> TrackerStatus
 pub fn Tracker::update(Self, Int, Array[Detection]) -> FrameTracks raise TrackerError
 
 pub struct TrackerConfig {
@@ -91,6 +92,12 @@ pub fn TrackerConfig::min_hits(Self) -> Int
 pub fn TrackerConfig::new(high_score_threshold~ : Double, low_score_threshold~ : Double, new_track_threshold~ : Double, first_match_max_cost~ : Double, second_match_max_cost~ : Double, max_lost_frames~ : Int, min_hits~ : Int, fuse_score~ : Bool) -> Self raise TrackerError
 pub fn TrackerConfig::new_track_threshold(Self) -> Double
 pub fn TrackerConfig::second_match_max_cost(Self) -> Double
+
+type TrackerStatus
+pub fn TrackerStatus::active_count(Self) -> Int
+pub fn TrackerStatus::last_frame(Self) -> Int?
+pub fn TrackerStatus::lost_count(Self) -> Int
+pub fn TrackerStatus::tentative_count(Self) -> Int
 
 // Type aliases
 

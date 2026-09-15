@@ -256,3 +256,36 @@ pub fn FrameTracks::lost(self : FrameTracks) -> Array[Int] {
 pub fn FrameTracks::removed(self : FrameTracks) -> Array[Int] {
   self.removed.copy()
 }
+
+///|
+/// A read-only summary of identities retained by a tracker.
+struct TrackerStatus {
+  last_frame : Int?
+  active_count : Int
+  tentative_count : Int
+  lost_count : Int
+}
+
+///|
+/// Returns the most recently accepted frame, or `None` before the first update.
+pub fn TrackerStatus::last_frame(self : TrackerStatus) -> Int? {
+  self.last_frame
+}
+
+///|
+/// Returns the number of confirmed identities visible in the latest frame.
+pub fn TrackerStatus::active_count(self : TrackerStatus) -> Int {
+  self.active_count
+}
+
+///|
+/// Returns the number of active identities still below `min_hits`.
+pub fn TrackerStatus::tentative_count(self : TrackerStatus) -> Int {
+  self.tentative_count
+}
+
+///|
+/// Returns the number of confirmed identities retained for recovery.
+pub fn TrackerStatus::lost_count(self : TrackerStatus) -> Int {
+  self.lost_count
+}

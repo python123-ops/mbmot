@@ -291,3 +291,39 @@ test "reset restarts frame acceptance and identity numbering" {
   let result = tracker.update(1, [detection(20.0, 0.0, 30.0, 10.0, 0.95, 0)])
   assert_eq(result.tracks()[0].track_id(), 1)
 }
+
+///|
+test "status distinguishes confirmed tentative and lost identities" {
+  let tracker = configured_tracker(2, 2)
+  let initial = tracker.status()
+  assert_eq(initial.last_frame(), None)
+  assert_eq(initial.active_count(), 0)
+  assert_eq(initial.tentative_count(), 0)
+  assert_eq(initial.lost_count(), 0)
+  ignore(
+    tracker.update(1, [
+      detection(0.0, 0.0, 10.0, 10.0, 0.9, 0),
+      detection(20.0, 0.0, 30.0, 10.0, 0.9, 0),
+    ]),
+  )
+  let tentative = tracker.status()
+  assert_eq(tentative.last_frame(), Some(1))
+  assert_eq(tentative.active_count(), 0)
+  assert_eq(tentative.tentative_count(), 2)
+  ignore(
+    tracker.update(2, [
+      detection(0.0, 0.0, 10.0, 10.0, 0.9, 0),
+      detection(20.0, 0.0, 30.0, 10.0, 0.9, 0),
+    ]),
+  )
+  let confirmed = tracker.status()
+  assert_eq(confirmed.active_count(), 2)
+  assert_eq(confirmed.tentative_count(), 0)
+  ignore(tracker.update(3, [detection(0.0, 0.0, 10.0, 10.0, 0.9, 0)]))
+  let mixed = tracker.status()
+  assert_eq(mixed.last_frame(), Some(3))
+  assert_eq(mixed.active_count(), 1)
+  assert_eq(mixed.lost_count(), 1)
+  tracker.reset()
+  assert_eq(tracker.status().last_frame(), None)
+}
