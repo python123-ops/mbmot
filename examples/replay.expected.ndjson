@@ -1,0 +1,4 @@
+{"frame":1,"tracks":[{"track_id":1,"xyxy":[0,0,10,10],"score":0.95,"class_id":0,"first_frame":1,"last_frame":1,"hits":1}],"lost":[],"removed":[]}
+{"frame":2,"tracks":[{"track_id":1,"xyxy":[1,0,11,10],"score":0.9,"class_id":0,"first_frame":1,"last_frame":2,"hits":2},{"track_id":2,"xyxy":[30,0,40,10],"score":0.8,"class_id":1,"first_frame":2,"last_frame":2,"hits":1}],"lost":[],"removed":[]}
+{"frame":3,"tracks":[{"track_id":1,"xyxy":[2,0,12,10],"score":0.15,"class_id":0,"first_frame":1,"last_frame":3,"hits":3}],"lost":[2],"removed":[]}
+{"frame":4,"tracks":[{"track_id":1,"xyxy":[3,0,13,10],"score":0.92,"class_id":0,"first_frame":1,"last_frame":4,"hits":4},{"track_id":2,"xyxy":[30,0,40,10],"score":0.85,"class_id":1,"first_frame":2,"last_frame":4,"hits":2}],"lost":[],"removed":[]}

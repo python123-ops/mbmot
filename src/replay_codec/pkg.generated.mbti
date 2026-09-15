@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "python123-ops/mbmot/replay"
+package "python123-ops/mbmot/replay_codec"
 
 import {
   "moonbitlang/core/debug",

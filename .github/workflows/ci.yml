@@ -23,3 +23,19 @@ jobs:
         run: moon test --target all --deny-warn
       - name: Generate interfaces
         run: moon info --target all
+      - name: Replay the checked-in stream
+        run: |
+          moon run src/replay --target native < examples/replay.ndjson > replay.actual.ndjson
+          diff -u examples/replay.expected.ndjson replay.actual.ndjson
+      - name: Reject an invalid frame after complete output
+        run: |
+          set +e
+          printf '%s\n' \
+            '{"frame":1,"detections":[]}' \
+            '{"frame":1,"detections":[]}' \
+            | moon run src/replay --target native > replay.partial.ndjson 2> replay.error.txt
+          status=$?
+          set -e
+          test "$status" -ne 0
+          test "$(wc -l < replay.partial.ndjson)" -eq 1
+          grep -F 'line 2: frame must increase: previous 1, received 1' replay.error.txt

@@ -1,0 +1,4 @@
+{"frame":1,"detections":[{"xyxy":[0,0,10,10],"score":0.95,"class_id":0}]}
+{"frame":2,"detections":[{"xyxy":[1,0,11,10],"score":0.9,"class_id":0},{"xyxy":[30,0,40,10],"score":0.8,"class_id":1}]}
+{"frame":3,"detections":[{"xyxy":[2,0,12,10],"score":0.15,"class_id":0}]}
+{"frame":4,"detections":[{"xyxy":[3,0,13,10],"score":0.92,"class_id":0},{"xyxy":[30,0,40,10],"score":0.85,"class_id":1}]}
