@@ -1,0 +1,6 @@
+frame=1 events=[] line=0/0 region=0/0/0 occupancy=0 occupants=[]
+frame=2 events=[entered(region=7,track=1,initial=false)] line=0/0 region=1/0/1 occupancy=1 occupants=[track=1:dwell=1]
+frame=3 events=[crossed(line=4,track=1,direction=left_to_right)] line=1/0 region=1/0/1 occupancy=1 occupants=[track=1:dwell=2]
+frame=4 events=[] line=1/0 region=1/0/1 occupancy=0 occupants=[]
+frame=5 events=[] line=1/0 region=1/0/1 occupancy=1 occupants=[track=1:dwell=4]
+frame=6 events=[exited(region=7,track=1,dwell=4)] line=1/0 region=1/1/1 occupancy=0 occupants=[]

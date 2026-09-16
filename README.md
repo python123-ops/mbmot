@@ -1,6 +1,6 @@
 # MBMOT
 
-MBMOT 是一个用 MoonBit 编写的在线多目标跟踪库。它不读取图片，也不绑定某个检测模型；调用方逐帧交给它检测框、置信度和类别，得到按 `track_id` 排序的可见轨迹，以及本帧进入 `lost` 或 `removed` 的编号。
+MBMOT 是一个用 MoonBit 编写的在线多目标跟踪库。它不读取图片，也不绑定某个检测模型；调用方逐帧交给它检测框、置信度和类别，得到按 `track_id` 排序的可见轨迹，以及本帧进入 `lost` 或 `removed` 的编号。仓库中的 `analytics` 包还可以把这条身份流转成越线、区域进出、占用、唯一目标数和停留帧数。
 
 跟踪器采用八维 `xyah + velocity` 运动状态。高分检测先与活动、暂定和仍在保留期内的 lost 轨迹关联，未匹配的活动轨迹再尝试低分检测。低分框能维持正在活动的身份，但不会新建编号或恢复已经 lost 的轨迹。
 
@@ -11,6 +11,8 @@ MBMOT 是一个用 MoonBit 编写的在线多目标跟踪库。它不读取图�
 ```bash
 moon add python123-ops/mbmot@0.1.0
 ```
+
+`0.1.0` 包含跟踪、NDJSON 重放和 MOT 评测。下文的空间事件包是该版本之后的源码增量，在新版本发布前需要从当前仓库检出运行。
 
 需要安装 MoonBit 工具链。检出仓库后可以运行四个稳定后端的检查和测试：
 
@@ -55,6 +57,55 @@ assert_eq(track.hits(), 1)
 | `max_lost_frames` | 30 | lost 身份的保留帧数 |
 | `min_hits` | 1 | 轨迹可见前所需命中数 |
 | `fuse_score` | `true` | 第一阶段是否融合检测分数 |
+
+## 从轨迹到空间事件
+
+`python123-ops/mbmot/analytics` 接受 MBMOT 的 `FrameTracks`，也接受由其他跟踪器构造的 `TrackSample`。下面的组合调用使用检测框底边中心作为规则判定点：
+
+```moonbit
+let analyzer = @analytics.SpatialAnalyzer::new(
+  @analytics.AnalyticsConfig::default(),
+  [
+    @analytics.DirectedLine::new(
+      4,
+      @analytics.Point::new(320.0, 0.0),
+      @analytics.Point::new(320.0, 720.0),
+    ),
+  ],
+  [
+    @analytics.PolygonRegion::new(
+      7,
+      [
+        @analytics.Point::new(100.0, 100.0),
+        @analytics.Point::new(540.0, 100.0),
+        @analytics.Point::new(540.0, 620.0),
+        @analytics.Point::new(100.0, 620.0),
+      ],
+    ),
+  ],
+)
+
+let tracked = tracker.update(frame_id, detections)
+let spatial = analyzer.update_mbmot(frame_id, tracked)
+for event in spatial.events() {
+  // LineCrossed / RegionEntered / RegionExited
+  consume(event)
+}
+```
+
+有向线从 `start` 指向 `end`，越线方向是 `LeftToRight` 或 `RightToLeft`。区域初次观测就在内部时，`RegionEntered` 的 `initial` 为 `true`；从外部进入时为 `false`。`RegionExited` 的 `dwell_frames` 使用真实帧号差，因此跳帧不会被压缩成一帧。
+
+默认需要连续两次明确位于新一侧才确认状态变化。点落在线或多边形边界时不推进证据。`lost` 身份不计入当前占用，但保留区域归属和进入帧；恢复后不会重复报告进入，也不会根据未观测路径推断越线。`removed` 清理身份的临时状态，累计统计仍保留。
+
+规则与轨迹必须使用同一坐标尺度。分析器不读取图像尺寸，也不会在像素和归一化坐标之间自动转换。帧号不递增、轨迹编号重复或冲突、类别变化和已移除编号的复用都会整帧拒绝。
+
+仓库内的六帧样例依次展示进入、越线、短暂丢失、恢复和退出：
+
+```bash
+moon run src/analytics_demo --target native
+```
+
+命令的六行输出与 [`examples/analytics.expected.txt`](examples/analytics.expected.txt) 逐字比较。样例为了在六帧中展示完整事件链，显式使用 `stable_frames = 1`。
 
 ## NDJSON 重放
 

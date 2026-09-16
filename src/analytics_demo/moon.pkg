@@ -1,0 +1,8 @@
+import {
+  "python123-ops/mbmot",
+  "python123-ops/mbmot/analytics",
+}
+
+supported_targets = "+native"
+
+pkgtype(kind: "executable")

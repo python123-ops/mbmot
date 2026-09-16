@@ -1,0 +1,109 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "python123-ops/mbmot/analytics"
+
+import {
+  "moonbitlang/core/debug",
+  "python123-ops/mbmot",
+}
+
+// Values
+
+// Errors
+pub(all) suberror AnalyticsError {
+  InvalidPoint
+  InvalidBoundingBox
+  InvalidLine(String)
+  InvalidRegion(String)
+  InvalidConfig(String)
+  DuplicateRuleId(kind~ : String, id~ : Int)
+  NonIncreasingFrame(previous~ : Int, received~ : Int)
+  InvalidTrackId(Int)
+  InvalidClassId(Int)
+  DuplicateTrackId(Int)
+  ConflictingTrackId(Int)
+  ChangedClassId(track_id~ : Int, previous~ : Int, received~ : Int)
+  UnknownLifecycleId(Int)
+  ReusedRemovedId(Int)
+} derive(Eq, @debug.Debug)
+pub fn AnalyticsError::message(Self) -> String
+
+// Types and methods
+type AnalyticsConfig derive(Eq, @debug.Debug)
+pub fn AnalyticsConfig::anchor(Self) -> Anchor
+pub fn AnalyticsConfig::default() -> Self
+pub fn AnalyticsConfig::new(anchor~ : Anchor, stable_frames~ : Int) -> Self raise AnalyticsError
+pub fn AnalyticsConfig::stable_frames(Self) -> Int
+
+pub(all) enum AnalyticsEvent {
+  LineCrossed(line_id~ : Int, track_id~ : Int, direction~ : CrossingDirection)
+  RegionEntered(region_id~ : Int, track_id~ : Int, initial~ : Bool)
+  RegionExited(region_id~ : Int, track_id~ : Int, dwell_frames~ : Int)
+} derive(Eq, @debug.Debug)
+
+type AnalyticsFrame derive(Eq, @debug.Debug)
+pub fn AnalyticsFrame::events(Self) -> Array[AnalyticsEvent]
+pub fn AnalyticsFrame::frame_id(Self) -> Int
+pub fn AnalyticsFrame::line_counts(Self) -> Array[LineCount]
+pub fn AnalyticsFrame::occupants(Self) -> Array[RegionOccupant]
+pub fn AnalyticsFrame::region_counts(Self) -> Array[RegionCount]
+
+pub(all) enum Anchor {
+  Center
+  BottomCenter
+} derive(Eq, @debug.Debug)
+
+pub(all) enum CrossingDirection {
+  LeftToRight
+  RightToLeft
+} derive(Eq, @debug.Debug)
+
+type DirectedLine derive(Eq, @debug.Debug)
+pub fn DirectedLine::end(Self) -> Point
+pub fn DirectedLine::id(Self) -> Int
+pub fn DirectedLine::new(Int, Point, Point) -> Self raise AnalyticsError
+pub fn DirectedLine::start(Self) -> Point
+
+type LineCount derive(Eq, @debug.Debug)
+pub fn LineCount::left_to_right(Self) -> Int
+pub fn LineCount::line_id(Self) -> Int
+pub fn LineCount::right_to_left(Self) -> Int
+
+type Point derive(Eq, @debug.Debug)
+pub fn Point::new(Double, Double) -> Self raise AnalyticsError
+pub fn Point::x(Self) -> Double
+pub fn Point::y(Self) -> Double
+
+type PolygonRegion derive(Eq, @debug.Debug)
+pub fn PolygonRegion::id(Self) -> Int
+pub fn PolygonRegion::new(Int, Array[Point]) -> Self raise AnalyticsError
+pub fn PolygonRegion::vertices(Self) -> Array[Point]
+
+type RegionCount derive(Eq, @debug.Debug)
+pub fn RegionCount::current_occupancy(Self) -> Int
+pub fn RegionCount::entries(Self) -> Int
+pub fn RegionCount::exits(Self) -> Int
+pub fn RegionCount::region_id(Self) -> Int
+pub fn RegionCount::unique_tracks(Self) -> Int
+
+type RegionOccupant derive(Eq, @debug.Debug)
+pub fn RegionOccupant::class_id(Self) -> Int
+pub fn RegionOccupant::dwell_frames(Self) -> Int
+pub fn RegionOccupant::region_id(Self) -> Int
+pub fn RegionOccupant::track_id(Self) -> Int
+
+type SpatialAnalyzer
+pub fn SpatialAnalyzer::new(AnalyticsConfig, Array[DirectedLine], Array[PolygonRegion]) -> Self raise AnalyticsError
+pub fn SpatialAnalyzer::reset(Self) -> Unit
+pub fn SpatialAnalyzer::update(Self, Int, Array[TrackSample], Array[Int], Array[Int]) -> AnalyticsFrame raise AnalyticsError
+pub fn SpatialAnalyzer::update_mbmot(Self, Int, @mbmot.FrameTracks) -> AnalyticsFrame raise AnalyticsError
+
+type TrackSample derive(Eq, @debug.Debug)
+pub fn TrackSample::bbox(Self) -> @mbmot.BoundingBox
+pub fn TrackSample::class_id(Self) -> Int
+pub fn TrackSample::from_track(@mbmot.Track) -> Self
+pub fn TrackSample::new(Int, @mbmot.BoundingBox, Int) -> Self raise AnalyticsError
+pub fn TrackSample::track_id(Self) -> Int
+
+// Type aliases
+
+// Traits

@@ -29,6 +29,10 @@ jobs:
         run: |
           moon run src/replay --target native < examples/replay.ndjson > replay.actual.ndjson
           diff -u examples/replay.expected.ndjson replay.actual.ndjson
+      - name: Check spatial event example
+        run: |
+          moon run src/analytics_demo --target native > analytics.actual.txt
+          diff -u examples/analytics.expected.txt analytics.actual.txt
       - name: Reject an invalid frame after complete output
         run: |
           set +e

@@ -6,9 +6,9 @@ repository = "https://github.com/python123-ops/mbmot"
 
 license = "MIT"
 
-keywords = [ "tracking", "computer-vision", "mot" ]
+keywords = [ "tracking", "computer-vision", "mot", "analytics", "counting" ]
 
-description = "Detector-agnostic online multi-object tracking in MoonBit"
+description = "Detector-agnostic tracking and spatial event analytics in MoonBit"
 
 readme = "README.md"
 
