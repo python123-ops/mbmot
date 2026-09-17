@@ -1,0 +1,38 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "python123-ops/mbmot/analytics_codec"
+
+import {
+  "moonbitlang/core/debug",
+  "python123-ops/mbmot/analytics",
+}
+
+// Values
+
+// Errors
+pub(all) suberror AnalyticsReplayError {
+  InvalidJson(String)
+  InvalidSetup(String)
+  InvalidFrame(String)
+  InvalidRule(kind~ : String, index~ : Int, reason~ : String)
+  InvalidTrack(index~ : Int, reason~ : String)
+} derive(Eq, @debug.Debug)
+pub fn AnalyticsReplayError::message(Self) -> String
+
+pub(all) suberror AnalyticsReplayLineError {
+  AnalyticsReplayLineError(line~ : Int, reason~ : String)
+} derive(Eq, @debug.Debug)
+pub fn AnalyticsReplayLineError::line(Self) -> Int
+pub fn AnalyticsReplayLineError::message(Self) -> String
+
+// Types and methods
+pub struct AnalyticsReplaySession {
+  mut analyzer : @analytics.SpatialAnalyzer?
+  mut lines_read : Int
+}
+pub fn AnalyticsReplaySession::lines_read(Self) -> Int
+pub fn AnalyticsReplaySession::new() -> Self
+pub fn AnalyticsReplaySession::process_line(Self, StringView) -> String? raise AnalyticsReplayLineError
+
+// Type aliases
+
+// Traits

@@ -107,6 +107,23 @@ moon run src/analytics_demo --target native
 
 命令的六行输出与 [`examples/analytics.expected.txt`](examples/analytics.expected.txt) 逐字比较。样例为了在六帧中展示完整事件链，显式使用 `stable_frames = 1`。
 
+外部跟踪器也可以通过 NDJSON 使用同一分析逻辑。原生命令先读取一行规则配置，后续每行接收一帧可见轨迹与生命周期编号：
+
+```json
+{"config":{"anchor":"bottom_center","stable_frames":1},"lines":[{"id":4,"start":[5,0],"end":[5,10]}],"regions":[{"id":7,"vertices":[[0,0],[10,0],[10,10],[0,10]]}]}
+{"frame":1,"tracks":[{"track_id":1,"xyxy":[-3,2,-1,5],"class_id":0}],"lost":[],"removed":[]}
+```
+
+在 Bash 中重放完整样例：
+
+```bash
+moon run src/analytics_replay --target native < examples/analytics.ndjson
+```
+
+配置行不产生输出，每个帧行产生一个 JSON 对象。其中 `events` 是本帧确认的越线或区域状态变化，`line_counts` 和 `region_counts` 是截至当前帧的累计值，`occupants` 列出当前可见的区域内身份及停留帧数。完整输出保存在 [`examples/analytics.expected.ndjson`](examples/analytics.expected.ndjson)，CI 会逐字比较两者。
+
+输入可以来自 MBMOT、其他跟踪器或已经保存的轨迹文件，只需提供正整数 `track_id`、合法 `xyxy`、非负 `class_id`，并保证 `lost`、`removed` 与可见集合不冲突。空白行会被忽略；其他错误携带物理行号并以非零状态退出，错误前已经输出的完整帧仍然有效。
+
 ## NDJSON 重放
 
 原生重放命令从标准输入逐行读取：

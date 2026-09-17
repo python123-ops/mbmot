@@ -33,6 +33,10 @@ jobs:
         run: |
           moon run src/analytics_demo --target native > analytics.actual.txt
           diff -u examples/analytics.expected.txt analytics.actual.txt
+      - name: Replay external tracks through spatial analytics
+        run: |
+          moon run src/analytics_replay --target native < examples/analytics.ndjson > analytics.actual.ndjson
+          diff -u examples/analytics.expected.ndjson analytics.actual.ndjson
       - name: Reject an invalid frame after complete output
         run: |
           set +e
@@ -45,3 +49,16 @@ jobs:
           test "$status" -ne 0
           test "$(wc -l < replay.partial.ndjson)" -eq 1
           grep -F 'line 2: frame must increase: previous 1, received 1' replay.error.txt
+      - name: Preserve complete spatial output before an invalid frame
+        run: |
+          set +e
+          printf '%s\n' \
+            '{"config":{"anchor":"bottom_center","stable_frames":1},"lines":[],"regions":[]}' \
+            '{"frame":1,"tracks":[],"lost":[],"removed":[]}' \
+            '{"frame":1,"tracks":[],"lost":[],"removed":[]}' \
+            | moon run src/analytics_replay --target native > analytics.partial.ndjson 2> analytics.error.txt
+          status=$?
+          set -e
+          test "$status" -ne 0
+          test "$(wc -l < analytics.partial.ndjson)" -eq 1
+          grep -F 'line 3: frame must increase: previous 1, received 1' analytics.error.txt
