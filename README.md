@@ -124,6 +124,43 @@ moon run src/analytics_replay --target native < examples/analytics.ndjson
 
 输入可以来自 MBMOT、其他跟踪器或已经保存的轨迹文件，只需提供正整数 `track_id`、合法 `xyxy`、非负 `class_id`，并保证 `lost`、`removed` 与可见集合不冲突。空白行会被忽略；其他错误携带物理行号并以非零状态退出，错误前已经输出的完整帧仍然有效。
 
+## 录像演示
+
+`tools/video_demo/video_demo.py` 把录像拆成“检测、MoonBit 跟踪、MoonBit 空间分析、画面渲染”四段。默认检测器是 OpenCV 自带的全身行人 HOG，不需要下载模型；已有 YOLO 或其他检测器时，可直接传入与检测流重放相同的 NDJSON。
+
+PowerShell 中建立隔离环境并处理一段录像：
+
+```powershell
+py -3 -m venv .venv-video-demo
+.\.venv-video-demo\Scripts\python.exe -m pip install -r tools\video_demo\requirements.txt
+.\.venv-video-demo\Scripts\python.exe tools\video_demo\video_demo.py `
+  --source input.mp4 `
+  --output input.mbmot.mp4 `
+  --config examples\video-demo-config.json
+```
+
+也可以先录制摄像头 300 帧，再自动完成后续跟踪和渲染：
+
+```powershell
+.\.venv-video-demo\Scripts\python.exe tools\video_demo\video_demo.py `
+  --source 0 `
+  --max-frames 300 `
+  --output camera.mbmot.mp4 `
+  --config examples\video-demo-config.json
+```
+
+渲染画面包含检测框、`track_id`、类别和最近分数，并叠加有向线、多边形、双向计数、区域占用、唯一目标数和最近事件。同名 `-artifacts` 目录保留 `detections.ndjson`、`tracks.ndjson`、`analytics.ndjson` 和转换为像素坐标后的规则，可以单独检查每一段输出。
+
+外部检测结果的每行格式为：
+
+```json
+{"frame":1,"detections":[{"xyxy":[120,80,260,410],"score":0.91,"class_id":0}]}
+```
+
+传入时增加 `--detections detections.ndjson`，演示程序便不再运行 HOG。这个接入面不限制 YOLO 版本或推理框架。`examples/video-demo-config.json` 使用归一化规则坐标，运行时按录像宽高转成像素坐标。
+
+当前演示是离线双遍处理：第一遍生成检测和 MoonBit 结果，第二遍渲染录像。它不保留原视频音轨；OpenCV HOG 只用于全身行人演示，车辆、工件或更复杂视角应提供外部检测流。
+
 ## NDJSON 重放
 
 原生重放命令从标准输入逐行读取：

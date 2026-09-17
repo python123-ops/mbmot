@@ -1,0 +1,23 @@
+{
+  "coordinates": "normalized",
+  "anchor": "bottom_center",
+  "stable_frames": 2,
+  "lines": [
+    {
+      "id": 1,
+      "start": [0.5, 0.05],
+      "end": [0.5, 0.95]
+    }
+  ],
+  "regions": [
+    {
+      "id": 1,
+      "vertices": [
+        [0.1, 0.25],
+        [0.9, 0.25],
+        [0.9, 0.95],
+        [0.1, 0.95]
+      ]
+    }
+  ]
+}

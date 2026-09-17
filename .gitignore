@@ -1,2 +1,8 @@
 /_build/
 /.mooncakes/
+/.venv-video-demo/
+/.video-demo-work/
+__pycache__/
+*.py[cod]
+*.mbmot.mp4
+*.mbmot-artifacts/
