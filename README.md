@@ -161,6 +161,12 @@ py -3 -m venv .venv-video-demo
 
 当前演示是离线双遍处理：第一遍生成检测和 MoonBit 结果，第二遍渲染录像。它不保留原视频音轨；OpenCV HOG 只用于全身行人演示，车辆、工件或更复杂视角应提供外部检测流。
 
+仓库中保留了一段可直接查看的 90 帧输出：
+
+![MBMOT 录像演示预览](examples/video/preview.png)
+
+[播放 MBMOT 空间分析录像](examples/video/mbmot-spatial-demo.mp4)。原始画面来源和样例口径记录在 [`examples/video/README.md`](examples/video/README.md)。
+
 ## NDJSON 重放
 
 原生重放命令从标准输入逐行读取：
