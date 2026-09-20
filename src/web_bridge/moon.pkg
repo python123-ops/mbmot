@@ -1,0 +1,24 @@
+import {
+  "python123-ops/mbmot",
+  "python123-ops/mbmot/replay_codec",
+  "python123-ops/mbmot/analytics_codec",
+  "moonbitlang/core/json",
+}
+
+supported_targets = "js"
+
+pkgtype(kind: "foreign_library")
+
+options(
+  link: {
+    "js": {
+      "exports": [
+        "mbmot_create",
+        "mbmot_update",
+        "mbmot_reset",
+        "mbmot_close",
+      ],
+      "format": "esm",
+    },
+  },
+)
