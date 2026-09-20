@@ -22,6 +22,7 @@ const statusDot = document.querySelector("#status-dot");
 const statusText = document.querySelector("#engine-status");
 const videoFile = document.querySelector("#video-file");
 const detectionFile = document.querySelector("#detection-file");
+const codeTabs = Array.from(document.querySelectorAll("[data-code-tab]"));
 
 const metrics = {
   tracks: document.querySelector("#metric-tracks"),
@@ -149,7 +150,7 @@ function updatePanel(result) {
     Object.values(metrics).forEach((element) => {
       element.textContent = "0";
     });
-    eventList.innerHTML = '<li class="empty-event">播放录像后，这里会出现进入、退出和越线事件。</li>';
+    eventList.innerHTML = '<li class="empty-event">播放录像后显示越线和区域事件。</li>';
     downloadButton.disabled = true;
     return;
   }
@@ -312,8 +313,38 @@ canvas.addEventListener("pointerup", async (event) => {
 document.querySelectorAll(".mode").forEach((button) => {
   button.addEventListener("click", () => {
     activeMode = button.dataset.mode;
-    document.querySelectorAll(".mode").forEach((item) => item.classList.toggle("active", item === button));
+    document.querySelectorAll(".mode").forEach((item) => {
+      const active = item === button;
+      item.classList.toggle("active", active);
+      item.setAttribute("aria-pressed", String(active));
+    });
     draw();
+  });
+});
+
+function activateCodeTab(selected, focus = false) {
+  codeTabs.forEach((tab) => {
+    const active = tab === selected;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+    document.querySelector(`#panel-${tab.dataset.codeTab}`).hidden = !active;
+  });
+  if (focus) selected.focus();
+}
+
+codeTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => activateCodeTab(tab));
+  tab.addEventListener("keydown", (event) => {
+    let target = null;
+    if (event.key === "ArrowRight") target = codeTabs[(index + 1) % codeTabs.length];
+    if (event.key === "ArrowLeft") target = codeTabs[(index - 1 + codeTabs.length) % codeTabs.length];
+    if (event.key === "Home") target = codeTabs[0];
+    if (event.key === "End") target = codeTabs[codeTabs.length - 1];
+    if (target) {
+      event.preventDefault();
+      activateCodeTab(target, true);
+    }
   });
 });
 
