@@ -40,7 +40,14 @@ let animationId = null;
 let dragHandle = null;
 let activeMode = "line";
 let uploadedVideoUrl = null;
+let playbackFps = FPS;
 let rules = defaultRules(768, 576);
+
+function updatePlaybackFps() {
+  if (Number.isFinite(video.duration) && video.duration > 0 && detections.length > 0) {
+    playbackFps = detections.length / video.duration;
+  }
+}
 
 function defaultRules(width, height) {
   return {
@@ -312,7 +319,7 @@ document.querySelectorAll(".mode").forEach((button) => {
 
 function tick() {
   if (!video.paused && !video.ended) {
-    const target = Math.min(detections.length, Math.floor(video.currentTime * FPS) + 1);
+    const target = Math.min(detections.length, Math.floor(video.currentTime * playbackFps) + 1);
     try {
       processUntil(target);
     } catch (error) {
@@ -356,7 +363,7 @@ video.addEventListener("ended", () => {
 stepButton.addEventListener("click", () => {
   video.pause();
   const target = Math.min(detections.length, processedFrame + 1);
-  video.currentTime = Math.max(0, (target - 1) / FPS);
+  video.currentTime = Math.max(0, (target - 1) / playbackFps);
   processUntil(target);
 });
 
@@ -371,7 +378,7 @@ restartButton.addEventListener("click", () => {
 timeline.addEventListener("input", () => {
   video.pause();
   const target = Number(timeline.value);
-  video.currentTime = target === 0 ? 0 : (target - 1) / FPS;
+  video.currentTime = target === 0 ? 0 : (target - 1) / playbackFps;
   try {
     processUntil(target);
   } catch (error) {
@@ -419,6 +426,7 @@ detectionFile.addEventListener("change", async () => {
   if (!file) return;
   try {
     detections = parseNdjson(await file.text());
+    updatePlaybackFps();
     timeline.max = String(detections.length);
     createSession();
     processUntil(0);
@@ -461,6 +469,7 @@ async function start() {
     ]);
     canvas.width = video.videoWidth || 768;
     canvas.height = video.videoHeight || 576;
+    updatePlaybackFps();
     rules = defaultRules(canvas.width, canvas.height);
     createSession();
     processUntil(0);

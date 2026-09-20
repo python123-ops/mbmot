@@ -15,9 +15,13 @@ pub fn evaluate(Array[MotObject], Array[MotObject], EvaluationConfig) -> Evaluat
 
 pub fn objects_from_tracks(Array[@mbmot.Track]) -> Array[MotObject]
 
+pub fn parse_detections(StringView) -> Array[MotDetection] raise MotError
+
 pub fn parse_ground_truth(StringView) -> Array[MotObject] raise MotError
 
 pub fn parse_tracker_results(StringView) -> Array[MotObject] raise MotError
+
+pub fn track_detections(Array[MotDetection], @mbmot.TrackerConfig) -> Array[MotObject] raise MotError
 
 // Errors
 pub(all) suberror MotError {
@@ -64,6 +68,17 @@ pub fn EvaluationReport::mota(Self) -> Double
 pub fn EvaluationReport::motp(Self) -> Double
 pub fn EvaluationReport::tracker_detections(Self) -> Int
 pub fn EvaluationReport::true_positives(Self) -> Int
+
+pub struct MotDetection {
+  frame : Int
+  bbox : @mbmot.BoundingBox
+  confidence : Double
+  input_order : Int
+} derive(Eq, @debug.Debug)
+pub fn MotDetection::bbox(Self) -> @mbmot.BoundingBox
+pub fn MotDetection::confidence(Self) -> Double
+pub fn MotDetection::frame(Self) -> Int
+pub fn MotDetection::new(Int, @mbmot.BoundingBox, Double) -> Self raise MotError
 
 pub struct MotObject {
   frame : Int

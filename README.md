@@ -2,17 +2,19 @@
 
 MBMOT 是一个用 MoonBit 编写的在线多目标跟踪库。它不读取图片，也不绑定某个检测模型；调用方逐帧交给它检测框、置信度和类别，得到按 `track_id` 排序的可见轨迹，以及本帧进入 `lost` 或 `removed` 的编号。仓库中的 `analytics` 包还可以把这条身份流转成越线、区域进出、占用、唯一目标数和停留帧数。
 
+[在线体验](https://python123-ops.github.io/mbmot/) 会在浏览器中加载 MoonBit 的 JavaScript 产物，重放 90 帧检测流。页面可以调整有向线和多边形区域、查看统计，并导出轨迹与空间事件 NDJSON；默认录像的检测已经预先生成，浏览器不执行检测模型推理。
+
 跟踪器采用八维 `xyah + velocity` 运动状态。高分检测先与活动、暂定和仍在保留期内的 lost 轨迹关联，未匹配的活动轨迹再尝试低分检测。低分框能维持正在活动的身份，但不会新建编号或恢复已经 lost 的轨迹。
 
 ## 安装与源码运行
 
-在 MoonBit 模块中加入 `0.1.0`：
+在 MoonBit 模块中加入 `0.2.0`：
 
 ```bash
-moon add python123-ops/mbmot@0.1.0
+moon add python123-ops/mbmot@0.2.0
 ```
 
-`0.1.0` 包含跟踪、NDJSON 重放和 MOT 评测。下文的空间事件包是该版本之后的源码增量，在新版本发布前需要从当前仓库检出运行。
+这个版本包含跟踪、空间事件、NDJSON 编解码、MOT 文件读写与评测，以及网站使用的 JavaScript 桥接源码。
 
 需要安装 MoonBit 工具链。检出仓库后可以运行四个稳定后端的检查和测试：
 
@@ -204,7 +206,14 @@ MBMOT 处理单摄像头、轴对齐检测框，不使用外观特征。身份�
 原生命令接收标注和跟踪结果两个文件：
 
 ```bash
-moon run src/evaluate --target native -- examples/mot/ground-truth.txt examples/mot/tracker-results.txt
+moon run src/evaluate --target native examples/mot/ground-truth.txt examples/mot/tracker-results.txt
+```
+
+已有 MOTChallenge 检测文件时，可以先由 MBMOT 生成十列轨迹结果。检测行接受常见的七列或十列形式；文件无需预先按帧排序，同一帧内仍保留原检测顺序：
+
+```bash
+moon run src/mot_track --target native --release \
+  examples/mot/detections.txt tracks.txt
 ```
 
 仓库样例会输出：
@@ -214,6 +223,8 @@ moon run src/evaluate --target native -- examples/mot/ground-truth.txt examples/
 ```
 
 这里的评测用于自有序列回归，不执行 MOTChallenge 对行人类别、遮挡区域和 distractor 类别的官方预处理。需要提交排行榜时，应再用 [TrackEval](https://github.com/JonathonLuiten/TrackEval) 复核同一份轨迹结果。
+
+仓库中的 [`benchmarks/MOT17-02-FRCNN.md`](benchmarks/MOT17-02-FRCNN.md) 记录了一次完整训练序列运行的输入哈希、参数、原始计数和 TrackEval 复核结果。该记录得到 HOTA 34.895、MOTA 32.404、IDF1 39.606 和 111 次身份切换；它是可复算的训练序列结果，不是测试集排行榜成绩。
 
 ## License
 

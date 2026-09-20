@@ -1,0 +1,15 @@
+/_build/
+/.git/
+/.github/
+/.mooncakes/
+/.venv-video-demo/
+/.video-demo-work/
+/web/
+/tools/
+/benchmarks/
+/examples/video/
+*.mp4
+*.png
+*.mbmot-artifacts/
+__pycache__/
+*.py[cod]
