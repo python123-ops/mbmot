@@ -7,3 +7,4 @@ __pycache__/
 *.mbmot.mp4
 !examples/video/mbmot-spatial-demo.mp4
 *.mbmot-artifacts/
+/benchmarks/data/

@@ -1,0 +1,10 @@
+{
+  "dataset": "MOT17 train",
+  "sequence": "MOT17-02-FRCNN",
+  "frames": 600,
+  "hota": 34.895,
+  "mota": 32.404,
+  "idf1": 39.606,
+  "identity_switches": 111,
+  "tracking_time_ms": 133.259
+}

@@ -1,0 +1,20 @@
+{
+  "dataset": "MOT17 train",
+  "sequence": "MOT17-02-FRCNN",
+  "frames": 600,
+  "detector_rows": 8186,
+  "tracker_rows": 7881,
+  "trackeval_commit": "12c8791b303e0a0b50f753af204249e622d0281a",
+  "hota": 34.895,
+  "mota": 32.404,
+  "motp": 88.17,
+  "idf1": 39.606,
+  "idp": 74.739,
+  "idr": 26.941,
+  "identity_switches": 111,
+  "true_positives": 6415,
+  "false_positives": 283,
+  "false_negatives": 12166,
+  "tracking_time_ms": 133.259,
+  "timing_repetitions_ms": [146.265, 133.259, 127.638, 132.008, 137.739]
+}
