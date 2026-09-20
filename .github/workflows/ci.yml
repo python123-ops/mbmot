@@ -23,6 +23,12 @@ jobs:
         run: moon check --target all --deny-warn
       - name: Test all stable backends
         run: moon test --target all --deny-warn
+      - name: Build the browser product
+        env:
+          MBMOT_MOON: moon
+        run: |
+          node web/build.mjs
+          node web/tests/bridge.mjs _build/site/mbmot.js
       - name: Test recorded-video process bridge
         env:
           MBMOT_TEST_MOON: moon
@@ -41,6 +47,10 @@ jobs:
         run: |
           moon run src/analytics_replay --target native < examples/analytics.ndjson > analytics.actual.ndjson
           diff -u examples/analytics.expected.ndjson analytics.actual.ndjson
+      - name: Convert a MOT detection fixture
+        run: |
+          moon run --target native src/mot_track examples/mot/detections.txt mot.actual.txt
+          diff -u examples/mot/tracked.expected.txt mot.actual.txt
       - name: Reject an invalid frame after complete output
         run: |
           set +e
