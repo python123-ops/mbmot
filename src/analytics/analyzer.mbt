@@ -535,6 +535,9 @@ pub fn SpatialAnalyzer::update(
     let state = retained[state_index]
     let point = sample.anchor_point(self.config.anchor)
     for line_index, line in self.lines {
+      if !line.accepts_class(state.class_id) {
+        continue
+      }
       advance_line(
         state.lines[line_index],
         line.classify(point),
@@ -546,6 +549,9 @@ pub fn SpatialAnalyzer::update(
       )
     }
     for region_index, region in self.regions {
+      if !region.accepts_class(state.class_id) {
+        continue
+      }
       advance_region(
         state.regions[region_index],
         region.classify(point),

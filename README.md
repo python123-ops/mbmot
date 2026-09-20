@@ -101,6 +101,19 @@ for event in spatial.events() {
 
 规则与轨迹必须使用同一坐标尺度。分析器不读取图像尺寸，也不会在像素和归一化坐标之间自动转换。帧号不递增、轨迹编号重复或冲突、类别变化和已移除编号的复用都会整帧拒绝。
 
+一条检测流同时包含多种目标时，可以让每条规则只观察指定类别。例如下面的计数线只处理 `class_id` 为 `0` 或 `2` 的轨迹，其他轨迹仍会由跟踪器输出，但不会推进这条线的去抖状态或累计计数：
+
+```moonbit
+let selected_line = @analytics.DirectedLine::for_classes(
+  12,
+  @analytics.Point::new(320.0, 0.0),
+  @analytics.Point::new(320.0, 720.0),
+  [0, 2],
+)
+```
+
+`PolygonRegion::for_classes` 对区域采用相同语义。原有的 `DirectedLine::new` 和 `PolygonRegion::new` 仍接受所有类别；筛选列表必须非空、无重复且只包含非负编号，内部会按编号排序，因此输入顺序不会影响结果。
+
 仓库内的六帧样例依次展示进入、越线、短暂丢失、恢复和退出：
 
 ```bash
@@ -112,7 +125,7 @@ moon run src/analytics_demo --target native
 外部跟踪器也可以通过 NDJSON 使用同一分析逻辑。原生命令先读取一行规则配置，后续每行接收一帧可见轨迹与生命周期编号：
 
 ```json
-{"config":{"anchor":"bottom_center","stable_frames":1},"lines":[{"id":4,"start":[5,0],"end":[5,10]}],"regions":[{"id":7,"vertices":[[0,0],[10,0],[10,10],[0,10]]}]}
+{"config":{"anchor":"bottom_center","stable_frames":1},"lines":[{"id":4,"start":[5,0],"end":[5,10],"class_ids":[0]}],"regions":[{"id":7,"vertices":[[0,0],[10,0],[10,10],[0,10]],"class_ids":[0]}]}
 {"frame":1,"tracks":[{"track_id":1,"xyxy":[-3,2,-1,5],"class_id":0}],"lost":[],"removed":[]}
 ```
 
@@ -123,6 +136,8 @@ moon run src/analytics_replay --target native < examples/analytics.ndjson
 ```
 
 配置行不产生输出，每个帧行产生一个 JSON 对象。其中 `events` 是本帧确认的越线或区域状态变化，`line_counts` 和 `region_counts` 是截至当前帧的累计值，`occupants` 列出当前可见的区域内身份及停留帧数。完整输出保存在 [`examples/analytics.expected.ndjson`](examples/analytics.expected.ndjson)，CI 会逐字比较两者。
+
+规则对象中的 `class_ids` 可以省略；省略时接受全部类别，提供时采用与 MoonBit API 相同的非空、非负和无重复约束。
 
 输入可以来自 MBMOT、其他跟踪器或已经保存的轨迹文件，只需提供正整数 `track_id`、合法 `xyxy`、非负 `class_id`，并保证 `lost`、`removed` 与可见集合不冲突。空白行会被忽略；其他错误携带物理行号并以非零状态退出，错误前已经输出的完整帧仍然有效。
 

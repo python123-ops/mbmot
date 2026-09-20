@@ -38,7 +38,13 @@ fn parse_setup(
   for index, item in input.lines {
     let start = input_point(item.start)
     let end = input_point(item.end)
-    let line_rule = @analytics.DirectedLine::new(item.id, start, end) catch {
+    let line_rule : @analytics.DirectedLine = try {
+      match item.class_ids {
+        None => @analytics.DirectedLine::new(item.id, start, end)
+        Some(class_ids) =>
+          @analytics.DirectedLine::for_classes(item.id, start, end, class_ids)
+      }
+    } catch {
       error => raise InvalidRule(kind="line", index~, reason=error.message())
     }
     lines.push(line_rule)
@@ -49,7 +55,13 @@ fn parse_setup(
     for coordinates in item.vertices {
       vertices.push(input_point(coordinates))
     }
-    let region = @analytics.PolygonRegion::new(item.id, vertices) catch {
+    let region : @analytics.PolygonRegion = try {
+      match item.class_ids {
+        None => @analytics.PolygonRegion::new(item.id, vertices)
+        Some(class_ids) =>
+          @analytics.PolygonRegion::for_classes(item.id, vertices, class_ids)
+      }
+    } catch {
       error => raise InvalidRule(kind="region", index~, reason=error.message())
     }
     regions.push(region)

@@ -36,4 +36,34 @@ assert.equal(afterReset.result.tracking.tracks[0].track_id, 1);
 assert.equal(JSON.parse(bridge.mbmot_close(id)).ok, true);
 assert.equal(JSON.parse(bridge.mbmot_update(id, frame)).code, "unknown_session");
 
+const filteredSetup = JSON.stringify({
+  config: { anchor: "bottom_center", stable_frames: 1 },
+  lines: [],
+  regions: [{
+    id: 2,
+    vertices: [[0, 0], [10, 0], [10, 10], [0, 10]],
+    class_ids: [1],
+  }],
+});
+const filteredCreated = JSON.parse(bridge.mbmot_create(filteredSetup));
+assert.equal(filteredCreated.ok, true);
+const filteredId = filteredCreated.result.session_id;
+const filteredOutput = JSON.parse(bridge.mbmot_update(filteredId, frame));
+assert.equal(filteredOutput.ok, true);
+assert.equal(filteredOutput.result.analytics.events.length, 0);
+assert.equal(
+  filteredOutput.result.analytics.region_counts[0].current_occupancy,
+  0,
+);
+assert.equal(JSON.parse(bridge.mbmot_close(filteredId)).ok, true);
+
+const invalidFilter = JSON.parse(bridge.mbmot_create(JSON.stringify({
+  config: { anchor: "bottom_center", stable_frames: 1 },
+  lines: [{ id: 3, start: [0, 0], end: [1, 0], class_ids: [] }],
+  regions: [],
+})));
+assert.equal(invalidFilter.ok, false);
+assert.equal(invalidFilter.code, "invalid_config");
+assert.match(invalidFilter.message, /class_ids must not be empty/);
+
 console.log("browser bridge integration passed");

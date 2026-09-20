@@ -1,4 +1,4 @@
-{"config":{"anchor":"bottom_center","stable_frames":1},"lines":[{"id":4,"start":[5,0],"end":[5,10]}],"regions":[{"id":7,"vertices":[[0,0],[10,0],[10,10],[0,10]]}]}
+{"config":{"anchor":"bottom_center","stable_frames":1},"lines":[{"id":4,"start":[5,0],"end":[5,10],"class_ids":[0]}],"regions":[{"id":7,"vertices":[[0,0],[10,0],[10,10],[0,10]],"class_ids":[0]}]}
 {"frame":1,"tracks":[{"track_id":1,"xyxy":[-3,2,-1,5],"class_id":0}],"lost":[],"removed":[]}
 {"frame":2,"tracks":[{"track_id":1,"xyxy":[1,2,3,5],"class_id":0}],"lost":[],"removed":[]}
 {"frame":3,"tracks":[{"track_id":1,"xyxy":[6,2,8,5],"class_id":0}],"lost":[],"removed":[]}

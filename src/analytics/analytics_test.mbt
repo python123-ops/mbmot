@@ -20,10 +20,20 @@ fn square(id : Int) -> @analytics.PolygonRegion raise {
 
 ///|
 fn sample_at(id : Int, x : Double, y : Double) -> @analytics.TrackSample raise {
+  sample_at_class(id, x, y, 0)
+}
+
+///|
+fn sample_at_class(
+  id : Int,
+  x : Double,
+  y : Double,
+  class_id : Int,
+) -> @analytics.TrackSample raise {
   @analytics.TrackSample::new(
     id,
     @mbmot.BoundingBox::new(x - 1.0, y - 2.0, x + 1.0, y),
-    0,
+    class_id,
   )
 }
 
@@ -86,6 +96,95 @@ test "configuration and duplicate rule ids fail before state is created" {
   } noraise {
     _ => fail("duplicate line ids must be rejected")
   }
+}
+
+///|
+test "class filters normalize ids and reject ambiguous lists" {
+  let line = @analytics.DirectedLine::for_classes(
+    2,
+    point(0.0, 0.0),
+    point(10.0, 0.0),
+    [3, 1],
+  )
+  assert_eq(line.class_ids(), Some([1, 3]))
+  guard line.class_ids() is Some(returned_ids) else {
+    fail("filtered line must expose its classes")
+  }
+  returned_ids.push(9)
+  assert_eq(line.class_ids(), Some([1, 3]))
+  assert_eq(horizontal_line(3).class_ids(), None)
+  let region = @analytics.PolygonRegion::for_classes(4, square(5).vertices(), [
+    2,
+  ])
+  assert_eq(region.class_ids(), Some([2]))
+  try
+    @analytics.DirectedLine::for_classes(6, point(0.0, 0.0), point(1.0, 0.0), [])
+  catch {
+    @analytics.InvalidClassFilter("class_ids must not be empty") => ()
+    _ => fail("unexpected error")
+  } noraise {
+    _ => fail("an empty filter must be rejected")
+  }
+  try
+    @analytics.PolygonRegion::for_classes(7, square(8).vertices(), [1, 1])
+  catch {
+    @analytics.InvalidClassFilter("duplicate class_id: 1") => ()
+    _ => fail("unexpected error")
+  } noraise {
+    _ => fail("duplicate classes must be rejected")
+  }
+  try
+    @analytics.DirectedLine::for_classes(9, point(0.0, 0.0), point(1.0, 0.0), [
+      -1,
+    ])
+  catch {
+    @analytics.InvalidClassFilter("class_id must be non-negative: -1") => ()
+    _ => fail("unexpected error")
+  } noraise {
+    _ => fail("negative classes must be rejected")
+  }
+}
+
+///|
+test "each spatial rule observes only its selected classes" {
+  let line = @analytics.DirectedLine::for_classes(
+    10,
+    point(0.0, 0.0),
+    point(10.0, 0.0),
+    [1],
+  )
+  let region = @analytics.PolygonRegion::for_classes(
+    11,
+    square(12).vertices(),
+    [0],
+  )
+  let subject = analyzer(1, [line], [region])
+  ignore(
+    subject.update(
+      1,
+      [sample_at_class(1, 5.0, 2.0, 1), sample_at_class(2, -2.0, 2.0, 0)],
+      [],
+      [],
+    ),
+  )
+  let frame = subject.update(
+    2,
+    [sample_at_class(1, 5.0, -2.0, 1), sample_at_class(2, 5.0, 5.0, 0)],
+    [],
+    [],
+  )
+  assert_eq(frame.events(), [
+    @analytics.LineCrossed(
+      line_id=10,
+      track_id=1,
+      direction=@analytics.LeftToRight,
+    ),
+    @analytics.RegionEntered(region_id=11, track_id=2, initial=false),
+  ])
+  assert_eq(frame.line_counts()[0].left_to_right(), 1)
+  assert_eq(frame.region_counts()[0].entries(), 1)
+  assert_eq(frame.region_counts()[0].current_occupancy(), 1)
+  assert_eq(frame.occupants()[0].class_id(), 0)
 }
 
 ///|

@@ -28,6 +28,49 @@ test "setup line creates rules without emitting a frame" {
 }
 
 ///|
+test "setup class filters separate line and region traffic" {
+  let session = AnalyticsReplaySession::new()
+  ignore(
+    session.process_line(
+      "{\"config\":{\"anchor\":\"bottom_center\",\"stable_frames\":1},\"lines\":[{\"id\":4,\"start\":[5,0],\"end\":[5,10],\"class_ids\":[1]}],\"regions\":[{\"id\":7,\"vertices\":[[0,0],[10,0],[10,10],[0,10]],\"class_ids\":[0]}]}",
+    ),
+  )
+  ignore(
+    session.process_line(
+      "{\"frame\":1,\"tracks\":[{\"track_id\":1,\"xyxy\":[1,2,3,5],\"class_id\":1},{\"track_id\":2,\"xyxy\":[-3,2,-1,5],\"class_id\":0}],\"lost\":[],\"removed\":[]}",
+    ),
+  )
+  let output = session.process_line(
+    "{\"frame\":2,\"tracks\":[{\"track_id\":1,\"xyxy\":[6,2,8,5],\"class_id\":1},{\"track_id\":2,\"xyxy\":[1,2,3,5],\"class_id\":0}],\"lost\":[],\"removed\":[]}",
+  )
+  assert_true(
+    output is Some(text) &&
+    text.contains("\"type\":\"line_crossed\",\"line_id\":4,\"track_id\":1") &&
+    text.contains("\"type\":\"region_entered\",\"region_id\":7,\"track_id\":2") &&
+    !text.contains("\"line_id\":4,\"track_id\":2") &&
+    !text.contains("\"region_id\":7,\"track_id\":1"),
+  )
+}
+
+///|
+test "invalid class filters retain rule index in setup errors" {
+  let session = AnalyticsReplaySession::new()
+  try
+    session.process_line(
+      "{\"config\":{\"anchor\":\"center\",\"stable_frames\":1},\"lines\":[{\"id\":4,\"start\":[0,0],\"end\":[1,0],\"class_ids\":[]}],\"regions\":[]}",
+    )
+  catch {
+    error =>
+      assert_eq(
+        error.message(),
+        "line 1: invalid line 0: invalid class filter: class_ids must not be empty",
+      )
+  } noraise {
+    _ => fail("an empty class filter must be rejected")
+  }
+}
+
+///|
 test "frame output exposes deterministic region entry and occupancy" {
   let session = AnalyticsReplaySession::new()
   ignore(session.process_line(setup_line()))

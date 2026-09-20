@@ -9,12 +9,14 @@ priv struct InputLine {
   id : Int
   start : Array[Double]
   end : Array[Double]
+  class_ids : Array[Int]?
 } derive(FromJson)
 
 ///|
 priv struct InputRegion {
   id : Int
   vertices : Array[Array[Double]]
+  class_ids : Array[Int]?
 } derive(FromJson)
 
 ///|

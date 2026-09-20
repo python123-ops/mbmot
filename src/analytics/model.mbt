@@ -6,6 +6,7 @@ pub(all) suberror AnalyticsError {
   InvalidLine(String)
   InvalidRegion(String)
   InvalidConfig(String)
+  InvalidClassFilter(String)
   DuplicateRuleId(kind~ : String, id~ : Int)
   NonIncreasingFrame(previous~ : Int, received~ : Int)
   InvalidTrackId(Int)
@@ -27,6 +28,7 @@ pub fn AnalyticsError::message(self : AnalyticsError) -> String {
     InvalidLine(reason) => "invalid directed line: " + reason
     InvalidRegion(reason) => "invalid polygon region: " + reason
     InvalidConfig(reason) => "invalid analytics config: " + reason
+    InvalidClassFilter(reason) => "invalid class filter: " + reason
     DuplicateRuleId(kind~, id~) => "duplicate \{kind} id: \{id}"
     NonIncreasingFrame(previous~, received~) =>
       "frame must increase: previous \{previous}, received \{received}"
@@ -75,7 +77,28 @@ struct DirectedLine {
   id : Int
   start : Point
   end : Point
+  class_ids : Array[Int]?
 } derive(Debug, Eq)
+
+///|
+fn normalize_class_ids(
+  class_ids : Array[Int],
+) -> Array[Int] raise AnalyticsError {
+  if class_ids.is_empty() {
+    raise InvalidClassFilter("class_ids must not be empty")
+  }
+  let normalized = class_ids.copy()
+  normalized.sort()
+  for index, class_id in normalized {
+    if class_id < 0 {
+      raise InvalidClassFilter("class_id must be non-negative: \{class_id}")
+    }
+    if index > 0 && class_id == normalized[index - 1] {
+      raise InvalidClassFilter("duplicate class_id: \{class_id}")
+    }
+  }
+  normalized
+}
 
 ///|
 /// Creates a non-degenerate directed line with a non-negative rule identifier.
@@ -90,7 +113,19 @@ pub fn DirectedLine::new(
   if start == end {
     raise InvalidLine("start and end must differ")
   }
-  { id, start, end, }
+  { id, start, end, class_ids: None, }
+}
+
+///|
+/// Creates a directed line that observes only the listed classes.
+pub fn DirectedLine::for_classes(
+  id : Int,
+  start : Point,
+  end : Point,
+  class_ids : Array[Int],
+) -> DirectedLine raise AnalyticsError {
+  let line = DirectedLine::new(id, start, end)
+  { ..line, class_ids: Some(normalize_class_ids(class_ids)), }
 }
 
 ///|
@@ -109,10 +144,25 @@ pub fn DirectedLine::end(self : DirectedLine) -> Point {
 }
 
 ///|
+/// Returns `None` when the rule accepts every class.
+pub fn DirectedLine::class_ids(self : DirectedLine) -> Array[Int]? {
+  self.class_ids.map(ids => ids.copy())
+}
+
+///|
+fn DirectedLine::accepts_class(self : DirectedLine, class_id : Int) -> Bool {
+  match self.class_ids {
+    None => true
+    Some(ids) => ids.contains(class_id)
+  }
+}
+
+///|
 /// A simple polygon used as an occupancy region.
 struct PolygonRegion {
   id : Int
   vertices : Array[Point]
+  class_ids : Array[Int]?
 } derive(Debug, Eq)
 
 ///|
@@ -122,7 +172,18 @@ pub fn PolygonRegion::new(
   vertices : Array[Point],
 ) -> PolygonRegion raise AnalyticsError {
   validate_polygon(id, vertices)
-  { id, vertices: vertices.copy(), }
+  { id, vertices: vertices.copy(), class_ids: None, }
+}
+
+///|
+/// Creates a polygon region that observes only the listed classes.
+pub fn PolygonRegion::for_classes(
+  id : Int,
+  vertices : Array[Point],
+  class_ids : Array[Int],
+) -> PolygonRegion raise AnalyticsError {
+  let region = PolygonRegion::new(id, vertices)
+  { ..region, class_ids: Some(normalize_class_ids(class_ids)), }
 }
 
 ///|
@@ -133,6 +194,20 @@ pub fn PolygonRegion::id(self : PolygonRegion) -> Int {
 ///|
 pub fn PolygonRegion::vertices(self : PolygonRegion) -> Array[Point] {
   self.vertices.copy()
+}
+
+///|
+/// Returns `None` when the rule accepts every class.
+pub fn PolygonRegion::class_ids(self : PolygonRegion) -> Array[Int]? {
+  self.class_ids.map(ids => ids.copy())
+}
+
+///|
+fn PolygonRegion::accepts_class(self : PolygonRegion, class_id : Int) -> Bool {
+  match self.class_ids {
+    None => true
+    Some(ids) => ids.contains(class_id)
+  }
 }
 
 ///|

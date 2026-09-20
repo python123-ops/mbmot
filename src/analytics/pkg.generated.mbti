@@ -15,6 +15,7 @@ pub(all) suberror AnalyticsError {
   InvalidLine(String)
   InvalidRegion(String)
   InvalidConfig(String)
+  InvalidClassFilter(String)
   DuplicateRuleId(kind~ : String, id~ : Int)
   NonIncreasingFrame(previous~ : Int, received~ : Int)
   InvalidTrackId(Int)
@@ -58,7 +59,9 @@ pub(all) enum CrossingDirection {
 } derive(Eq, @debug.Debug)
 
 type DirectedLine derive(Eq, @debug.Debug)
+pub fn DirectedLine::class_ids(Self) -> Array[Int]?
 pub fn DirectedLine::end(Self) -> Point
+pub fn DirectedLine::for_classes(Int, Point, Point, Array[Int]) -> Self raise AnalyticsError
 pub fn DirectedLine::id(Self) -> Int
 pub fn DirectedLine::new(Int, Point, Point) -> Self raise AnalyticsError
 pub fn DirectedLine::start(Self) -> Point
@@ -74,6 +77,8 @@ pub fn Point::x(Self) -> Double
 pub fn Point::y(Self) -> Double
 
 type PolygonRegion derive(Eq, @debug.Debug)
+pub fn PolygonRegion::class_ids(Self) -> Array[Int]?
+pub fn PolygonRegion::for_classes(Int, Array[Point], Array[Int]) -> Self raise AnalyticsError
 pub fn PolygonRegion::id(Self) -> Int
 pub fn PolygonRegion::new(Int, Array[Point]) -> Self raise AnalyticsError
 pub fn PolygonRegion::vertices(Self) -> Array[Point]
