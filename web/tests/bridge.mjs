@@ -21,6 +21,12 @@ const output = JSON.parse(bridge.mbmot_update(id, frame));
 assert.equal(output.ok, true);
 assert.equal(output.result.tracking.tracks[0].track_id, 1);
 assert.equal(output.result.analytics.region_counts[0].current_occupancy, 1);
+assert.equal(output.result.analytics.line_class_counts[0].class_id, 0);
+assert.equal(output.result.analytics.region_class_counts[0].class_id, 0);
+assert.equal(
+  output.result.analytics.region_class_counts[0].current_occupancy,
+  1,
+);
 
 const rejected = JSON.parse(bridge.mbmot_update(id, frame));
 assert.equal(rejected.ok, false);
@@ -51,6 +57,7 @@ const filteredId = filteredCreated.result.session_id;
 const filteredOutput = JSON.parse(bridge.mbmot_update(filteredId, frame));
 assert.equal(filteredOutput.ok, true);
 assert.equal(filteredOutput.result.analytics.events.length, 0);
+assert.equal(filteredOutput.result.analytics.region_class_counts.length, 0);
 assert.equal(
   filteredOutput.result.analytics.region_counts[0].current_occupancy,
   0,

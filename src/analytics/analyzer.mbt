@@ -30,7 +30,22 @@ priv struct LineTotals {
 }
 
 ///|
+priv struct LineClassTotals {
+  class_id : Int
+  mut left_to_right : Int
+  mut right_to_left : Int
+}
+
+///|
 priv struct RegionTotals {
+  mut entries : Int
+  mut exits : Int
+  unique_ids : Array[Int]
+}
+
+///|
+priv struct RegionClassTotals {
+  class_id : Int
   mut entries : Int
   mut exits : Int
   unique_ids : Array[Int]
@@ -45,7 +60,9 @@ struct SpatialAnalyzer {
   mut tracks : Array[TrackState]
   mut removed_ids : Array[Int]
   mut line_totals : Array[LineTotals]
+  mut line_class_totals : Array[Array[LineClassTotals]]
   mut region_totals : Array[RegionTotals]
+  mut region_class_totals : Array[Array[RegionClassTotals]]
   mut last_frame : Int?
 }
 
@@ -83,11 +100,13 @@ pub fn SpatialAnalyzer::new(
     tracks: [],
     removed_ids: [],
     line_totals: sorted_lines.map(_ => { left_to_right: 0, right_to_left: 0, }),
+    line_class_totals: sorted_lines.map(_ => []),
     region_totals: sorted_regions.map(_ => {
       entries: 0,
       exits: 0,
       unique_ids: [],
     }),
+    region_class_totals: sorted_regions.map(_ => []),
     last_frame: None,
   }
 }
@@ -259,6 +278,7 @@ fn advance_line(
   line_id : Int,
   track_id : Int,
   totals : LineTotals,
+  class_totals : LineClassTotals,
   events : Array[AnalyticsEvent],
 ) -> Unit {
   if side == 0 {
@@ -295,8 +315,14 @@ fn advance_line(
   }
   let direction = if state.stable_side > 0 { LeftToRight } else { RightToLeft }
   match direction {
-    LeftToRight => totals.left_to_right += 1
-    RightToLeft => totals.right_to_left += 1
+    LeftToRight => {
+      totals.left_to_right += 1
+      class_totals.left_to_right += 1
+    }
+    RightToLeft => {
+      totals.right_to_left += 1
+      class_totals.right_to_left += 1
+    }
   }
   events.push(LineCrossed(line_id~, track_id~, direction~))
   state.stable_side = side
@@ -312,12 +338,50 @@ fn remember_unique(totals : RegionTotals, track_id : Int) -> Unit {
 }
 
 ///|
+fn remember_class_unique(totals : RegionClassTotals, track_id : Int) -> Unit {
+  if !contains_id(totals.unique_ids, track_id) {
+    totals.unique_ids.push(track_id)
+  }
+}
+
+///|
+fn ensure_line_class_totals(
+  totals : Array[LineClassTotals],
+  class_id : Int,
+) -> LineClassTotals {
+  for total in totals {
+    if total.class_id == class_id {
+      return total
+    }
+  }
+  let total = { class_id, left_to_right: 0, right_to_left: 0, }
+  totals.push(total)
+  total
+}
+
+///|
+fn ensure_region_class_totals(
+  totals : Array[RegionClassTotals],
+  class_id : Int,
+) -> RegionClassTotals {
+  for total in totals {
+    if total.class_id == class_id {
+      return total
+    }
+  }
+  let total = { class_id, entries: 0, exits: 0, unique_ids: [], }
+  totals.push(total)
+  total
+}
+
+///|
 fn confirm_initial_region(
   state : RegionState,
   inside : Bool,
   region_id : Int,
   track_id : Int,
   totals : RegionTotals,
+  class_totals : RegionClassTotals,
   events : Array[AnalyticsEvent],
 ) -> Unit {
   state.stable_inside = Some(inside)
@@ -325,6 +389,8 @@ fn confirm_initial_region(
     state.entry_frame = Some(state.candidate_start)
     totals.entries += 1
     remember_unique(totals, track_id)
+    class_totals.entries += 1
+    remember_class_unique(class_totals, track_id)
     events.push(RegionEntered(region_id~, track_id~, initial=true))
   }
   state.candidate_inside = None
@@ -340,6 +406,7 @@ fn advance_region(
   region_id : Int,
   track_id : Int,
   totals : RegionTotals,
+  class_totals : RegionClassTotals,
   events : Array[AnalyticsEvent],
 ) -> Unit {
   if classification == 0 {
@@ -357,7 +424,7 @@ fn advance_region(
       }
       if state.candidate_count >= stable_frames {
         confirm_initial_region(
-          state, inside, region_id, track_id, totals, events,
+          state, inside, region_id, track_id, totals, class_totals, events,
         )
       }
     }
@@ -382,6 +449,8 @@ fn advance_region(
         state.entry_frame = Some(state.candidate_start)
         totals.entries += 1
         remember_unique(totals, track_id)
+        class_totals.entries += 1
+        remember_class_unique(class_totals, track_id)
         events.push(RegionEntered(region_id~, track_id~, initial=false))
       } else {
         let dwell_frames = match state.entry_frame {
@@ -390,6 +459,7 @@ fn advance_region(
         }
         state.entry_frame = None
         totals.exits += 1
+        class_totals.exits += 1
         events.push(RegionExited(region_id~, track_id~, dwell_frames~))
       }
       state.candidate_inside = None
@@ -428,7 +498,9 @@ fn make_frame(
   states : Array[TrackState],
   visible_ids : Array[Int],
   line_totals : Array[LineTotals],
+  line_class_totals : Array[Array[LineClassTotals]],
   region_totals : Array[RegionTotals],
+  region_class_totals : Array[Array[RegionClassTotals]],
   events : Array[AnalyticsEvent],
 ) -> AnalyticsFrame {
   events.sort_by(compare_event)
@@ -437,8 +509,22 @@ fn make_frame(
     left_to_right: line_totals[index].left_to_right,
     right_to_left: line_totals[index].right_to_left,
   })
+  let line_class_counts : Array[LineClassCount] = []
+  for line_index, line in lines {
+    let sorted = line_class_totals[line_index].copy()
+    sorted.sort_by((left, right) => left.class_id.compare(right.class_id))
+    for total in sorted {
+      line_class_counts.push({
+        line_id: line.id,
+        class_id: total.class_id,
+        left_to_right: total.left_to_right,
+        right_to_left: total.right_to_left,
+      })
+    }
+  }
   let occupants : Array[RegionOccupant] = []
   let region_counts : Array[RegionCount] = []
+  let region_class_counts : Array[RegionClassCount] = []
   for region_index, region in regions {
     let mut occupancy = 0
     for state in states {
@@ -467,6 +553,26 @@ fn make_frame(
       unique_tracks: region_totals[region_index].unique_ids.length(),
       current_occupancy: occupancy,
     })
+    let sorted = region_class_totals[region_index].copy()
+    sorted.sort_by((left, right) => left.class_id.compare(right.class_id))
+    for total in sorted {
+      let class_occupancy = occupants.fold(init=0, (count, occupant) => {
+        if occupant.region_id == region.id &&
+          occupant.class_id == total.class_id {
+          count + 1
+        } else {
+          count
+        }
+      })
+      region_class_counts.push({
+        region_id: region.id,
+        class_id: total.class_id,
+        entries: total.entries,
+        exits: total.exits,
+        unique_tracks: total.unique_ids.length(),
+        current_occupancy: class_occupancy,
+      })
+    }
   }
   occupants.sort_by((left, right) => {
     if left.region_id != right.region_id {
@@ -475,7 +581,15 @@ fn make_frame(
       left.track_id.compare(right.track_id)
     }
   })
-  { frame_id, events, line_counts, region_counts, occupants, }
+  {
+    frame_id,
+    events,
+    line_counts,
+    line_class_counts,
+    region_counts,
+    region_class_counts,
+    occupants,
+  }
 }
 
 ///|
@@ -499,10 +613,25 @@ pub fn SpatialAnalyzer::update(
     left_to_right: total.left_to_right,
     right_to_left: total.right_to_left,
   })
+  let working_line_classes = self.line_class_totals.map(totals => {
+    totals.map(total => {
+      class_id: total.class_id,
+      left_to_right: total.left_to_right,
+      right_to_left: total.right_to_left,
+    })
+  })
   let working_regions = self.region_totals.map(total => {
     entries: total.entries,
     exits: total.exits,
     unique_ids: total.unique_ids.copy(),
+  })
+  let working_region_classes = self.region_class_totals.map(totals => {
+    totals.map(total => {
+      class_id: total.class_id,
+      entries: total.entries,
+      exits: total.exits,
+      unique_ids: total.unique_ids.copy(),
+    })
   })
   for id in lost {
     guard find_track(working_tracks, id) is Some(index) else { continue }
@@ -538,6 +667,10 @@ pub fn SpatialAnalyzer::update(
       if !line.accepts_class(state.class_id) {
         continue
       }
+      let class_totals = ensure_line_class_totals(
+        working_line_classes[line_index],
+        state.class_id,
+      )
       advance_line(
         state.lines[line_index],
         line.classify(point),
@@ -545,6 +678,7 @@ pub fn SpatialAnalyzer::update(
         line.id,
         state.track_id,
         working_lines[line_index],
+        class_totals,
         events,
       )
     }
@@ -552,6 +686,10 @@ pub fn SpatialAnalyzer::update(
       if !region.accepts_class(state.class_id) {
         continue
       }
+      let class_totals = ensure_region_class_totals(
+        working_region_classes[region_index],
+        state.class_id,
+      )
       advance_region(
         state.regions[region_index],
         region.classify(point),
@@ -560,6 +698,7 @@ pub fn SpatialAnalyzer::update(
         region.id,
         state.track_id,
         working_regions[region_index],
+        class_totals,
         events,
       )
     }
@@ -574,13 +713,17 @@ pub fn SpatialAnalyzer::update(
     retained,
     visible_ids,
     working_lines,
+    working_line_classes,
     working_regions,
+    working_region_classes,
     events,
   )
   self.tracks = retained
   self.removed_ids = working_removed
   self.line_totals = working_lines
+  self.line_class_totals = working_line_classes
   self.region_totals = working_regions
+  self.region_class_totals = working_region_classes
   self.last_frame = Some(frame_id)
   frame
 }
@@ -606,10 +749,12 @@ pub fn SpatialAnalyzer::reset(self : SpatialAnalyzer) -> Unit {
   self.tracks = []
   self.removed_ids = []
   self.line_totals = self.lines.map(_ => { left_to_right: 0, right_to_left: 0, })
+  self.line_class_totals = self.lines.map(_ => [])
   self.region_totals = self.regions.map(_ => {
     entries: 0,
     exits: 0,
     unique_ids: [],
   })
+  self.region_class_totals = self.regions.map(_ => [])
   self.last_frame = None
 }

@@ -79,7 +79,7 @@ test "frame output exposes deterministic region entry and occupancy" {
   assert_eq(
     output,
     Some(
-      "{\"frame\":2,\"events\":[{\"type\":\"region_entered\",\"region_id\":7,\"track_id\":1,\"initial\":false}],\"line_counts\":[{\"line_id\":4,\"left_to_right\":0,\"right_to_left\":0}],\"region_counts\":[{\"region_id\":7,\"entries\":1,\"exits\":0,\"unique_tracks\":1,\"current_occupancy\":1}],\"occupants\":[{\"region_id\":7,\"track_id\":1,\"class_id\":0,\"dwell_frames\":1}]}",
+      "{\"frame\":2,\"events\":[{\"type\":\"region_entered\",\"region_id\":7,\"track_id\":1,\"initial\":false}],\"line_counts\":[{\"line_id\":4,\"left_to_right\":0,\"right_to_left\":0}],\"line_class_counts\":[{\"line_id\":4,\"class_id\":0,\"left_to_right\":0,\"right_to_left\":0}],\"region_counts\":[{\"region_id\":7,\"entries\":1,\"exits\":0,\"unique_tracks\":1,\"current_occupancy\":1}],\"region_class_counts\":[{\"region_id\":7,\"class_id\":0,\"entries\":1,\"exits\":0,\"unique_tracks\":1,\"current_occupancy\":1}],\"occupants\":[{\"region_id\":7,\"track_id\":1,\"class_id\":0,\"dwell_frames\":1}]}",
     ),
   )
 }

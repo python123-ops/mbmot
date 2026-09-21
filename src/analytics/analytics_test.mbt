@@ -182,9 +182,79 @@ test "each spatial rule observes only its selected classes" {
     @analytics.RegionEntered(region_id=11, track_id=2, initial=false),
   ])
   assert_eq(frame.line_counts()[0].left_to_right(), 1)
+  assert_eq(frame.line_class_counts().length(), 1)
+  assert_eq(frame.line_class_counts()[0].line_id(), 10)
+  assert_eq(frame.line_class_counts()[0].class_id(), 1)
+  assert_eq(frame.line_class_counts()[0].left_to_right(), 1)
   assert_eq(frame.region_counts()[0].entries(), 1)
   assert_eq(frame.region_counts()[0].current_occupancy(), 1)
+  assert_eq(frame.region_class_counts().length(), 1)
+  assert_eq(frame.region_class_counts()[0].region_id(), 11)
+  assert_eq(frame.region_class_counts()[0].class_id(), 0)
+  assert_eq(frame.region_class_counts()[0].entries(), 1)
+  assert_eq(frame.region_class_counts()[0].current_occupancy(), 1)
   assert_eq(frame.occupants()[0].class_id(), 0)
+}
+
+///|
+test "unfiltered rules return deterministic per-class crossing totals" {
+  let subject = analyzer(1, [horizontal_line(9), horizontal_line(4)], [])
+  ignore(
+    subject.update(
+      1,
+      [sample_at_class(5, 5.0, 2.0, 2), sample_at_class(3, 5.0, -2.0, 0)],
+      [],
+      [],
+    ),
+  )
+  let frame = subject.update(
+    2,
+    [sample_at_class(5, 5.0, -2.0, 2), sample_at_class(3, 5.0, 2.0, 0)],
+    [],
+    [],
+  )
+  let counts = frame.line_class_counts()
+  assert_eq(counts.length(), 4)
+  assert_eq(counts[0].line_id(), 4)
+  assert_eq(counts[0].class_id(), 0)
+  assert_eq(counts[0].left_to_right(), 0)
+  assert_eq(counts[0].right_to_left(), 1)
+  assert_eq(counts[1].line_id(), 4)
+  assert_eq(counts[1].class_id(), 2)
+  assert_eq(counts[1].left_to_right(), 1)
+  assert_eq(counts[1].right_to_left(), 0)
+  assert_eq(counts[2].line_id(), 9)
+  assert_eq(counts[2].class_id(), 0)
+  assert_eq(counts[3].line_id(), 9)
+  assert_eq(counts[3].class_id(), 2)
+  assert_eq(frame.line_counts()[0].left_to_right(), 1)
+  assert_eq(frame.line_counts()[0].right_to_left(), 1)
+}
+
+///|
+test "region class counts preserve totals while lost tracks leave occupancy" {
+  let subject = analyzer(1, [], [square(6)])
+  let entered = subject.update(
+    1,
+    [sample_at_class(8, 5.0, 5.0, 2), sample_at_class(7, 5.0, 5.0, 0)],
+    [],
+    [],
+  )
+  assert_eq(entered.region_class_counts().length(), 2)
+  let lost = subject.update(2, [sample_at_class(8, 12.0, 5.0, 2)], [7], [])
+  let counts = lost.region_class_counts()
+  assert_eq(counts[0].class_id(), 0)
+  assert_eq(counts[0].entries(), 1)
+  assert_eq(counts[0].exits(), 0)
+  assert_eq(counts[0].unique_tracks(), 1)
+  assert_eq(counts[0].current_occupancy(), 0)
+  assert_eq(counts[1].class_id(), 2)
+  assert_eq(counts[1].entries(), 1)
+  assert_eq(counts[1].exits(), 1)
+  assert_eq(counts[1].unique_tracks(), 1)
+  assert_eq(counts[1].current_occupancy(), 0)
+  assert_eq(lost.region_counts()[0].entries(), 2)
+  assert_eq(lost.region_counts()[0].exits(), 1)
 }
 
 ///|

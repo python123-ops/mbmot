@@ -114,6 +114,8 @@ let selected_line = @analytics.DirectedLine::for_classes(
 
 `PolygonRegion::for_classes` 对区域采用相同语义。原有的 `DirectedLine::new` 和 `PolygonRegion::new` 仍接受所有类别；筛选列表必须非空、无重复且只包含非负编号，内部会按编号排序，因此输入顺序不会影响结果。
 
+每帧结果同时保留规则总计和分类明细。`AnalyticsFrame::line_class_counts()` 按“计数线编号、类别编号”返回双向累计值；`region_class_counts()` 按“区域编号、类别编号”返回进入、离开、唯一身份和当前占用。分类项在该类别第一次被对应规则接受时出现，即使尚未发生越线或进入事件也会返回零值，调用方因此可以直接绘制稳定的分类面板。lost 目标会立即退出当前分类占用，但已经累计的进入和唯一身份不会丢失。
+
 仓库内的六帧样例依次展示进入、越线、短暂丢失、恢复和退出：
 
 ```bash
@@ -135,7 +137,7 @@ moon run src/analytics_demo --target native
 moon run src/analytics_replay --target native < examples/analytics.ndjson
 ```
 
-配置行不产生输出，每个帧行产生一个 JSON 对象。其中 `events` 是本帧确认的越线或区域状态变化，`line_counts` 和 `region_counts` 是截至当前帧的累计值，`occupants` 列出当前可见的区域内身份及停留帧数。完整输出保存在 [`examples/analytics.expected.ndjson`](examples/analytics.expected.ndjson)，CI 会逐字比较两者。
+配置行不产生输出，每个帧行产生一个 JSON 对象。其中 `events` 是本帧确认的越线或区域状态变化，`line_counts` 和 `region_counts` 是截至当前帧的规则总计，`line_class_counts` 和 `region_class_counts` 给出同一结果的类别拆分，`occupants` 列出当前可见的区域内身份及停留帧数。完整输出保存在 [`examples/analytics.expected.ndjson`](examples/analytics.expected.ndjson)，CI 会逐字比较两者。
 
 规则对象中的 `class_ids` 可以省略；省略时接受全部类别，提供时采用与 MoonBit API 相同的非空、非负和无重复约束。
 

@@ -18,6 +18,7 @@ const stepButton = document.querySelector("#step");
 const restartButton = document.querySelector("#restart");
 const downloadButton = document.querySelector("#download");
 const eventList = document.querySelector("#event-list");
+const classCounts = document.querySelector("#class-counts");
 const statusDot = document.querySelector("#status-dot");
 const statusText = document.querySelector("#engine-status");
 const videoFile = document.querySelector("#video-file");
@@ -145,11 +146,44 @@ function eventText(event, frame) {
   return `帧 ${frame} · 轨迹 ${event.track_id} 离开区域，停留 ${event.dwell_frames} 帧`;
 }
 
+function renderClassCounts(analytics) {
+  const rows = [];
+  for (const count of analytics.line_class_counts || []) {
+    rows.push({
+      label: `线 ${count.line_id} · 类别 ${count.class_id}`,
+      value: `左 ${count.left_to_right} · 右 ${count.right_to_left}`,
+    });
+  }
+  for (const count of analytics.region_class_counts || []) {
+    rows.push({
+      label: `区域 ${count.region_id} · 类别 ${count.class_id}`,
+      value: `占用 ${count.current_occupancy} · 进入 ${count.entries}`,
+    });
+  }
+  if (rows.length === 0) {
+    classCounts.innerHTML = '<p class="empty-class-count">当前还没有分类统计。</p>';
+    return;
+  }
+  classCounts.replaceChildren(
+    ...rows.map(({ label, value }) => {
+      const row = document.createElement("div");
+      row.className = "class-count-row";
+      const name = document.createElement("span");
+      name.textContent = label;
+      const result = document.createElement("strong");
+      result.textContent = value;
+      row.append(name, result);
+      return row;
+    }),
+  );
+}
+
 function updatePanel(result) {
   if (!result) {
     Object.values(metrics).forEach((element) => {
       element.textContent = "0";
     });
+    classCounts.innerHTML = '<p class="empty-class-count">播放录像后按类别显示规则统计。</p>';
     eventList.innerHTML = '<li class="empty-event">播放录像后显示越线和区域事件。</li>';
     downloadButton.disabled = true;
     return;
@@ -164,6 +198,7 @@ function updatePanel(result) {
   metrics.rtl.textContent = String(line.right_to_left || 0);
   metrics.entries.textContent = String(region.entries || 0);
   metrics.unique.textContent = String(region.unique_tracks || 0);
+  renderClassCounts(analytics);
   const events = results
     .flatMap((entry) => entry.analytics.events.map((event) => ({ frame: entry.tracking.frame, event })))
     .slice(-8)

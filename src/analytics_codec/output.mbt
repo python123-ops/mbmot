@@ -35,12 +35,32 @@ fn write_line_count(
 }
 
 ///|
+fn write_line_class_count(
+  builder : StringBuilder,
+  count : @analytics.LineClassCount,
+) -> Unit {
+  builder.write_string(
+    "{\"line_id\":\{count.line_id()},\"class_id\":\{count.class_id()},\"left_to_right\":\{count.left_to_right()},\"right_to_left\":\{count.right_to_left()}}",
+  )
+}
+
+///|
 fn write_region_count(
   builder : StringBuilder,
   count : @analytics.RegionCount,
 ) -> Unit {
   builder.write_string(
     "{\"region_id\":\{count.region_id()},\"entries\":\{count.entries()},\"exits\":\{count.exits()},\"unique_tracks\":\{count.unique_tracks()},\"current_occupancy\":\{count.current_occupancy()}}",
+  )
+}
+
+///|
+fn write_region_class_count(
+  builder : StringBuilder,
+  count : @analytics.RegionClassCount,
+) -> Unit {
+  builder.write_string(
+    "{\"region_id\":\{count.region_id()},\"class_id\":\{count.class_id()},\"entries\":\{count.entries()},\"exits\":\{count.exits()},\"unique_tracks\":\{count.unique_tracks()},\"current_occupancy\":\{count.current_occupancy()}}",
   )
 }
 
@@ -71,12 +91,26 @@ fn encode_analytics_frame(frame : @analytics.AnalyticsFrame) -> String {
     }
     write_line_count(builder, count)
   }
+  builder.write_string("],\"line_class_counts\":[")
+  for index, count in frame.line_class_counts() {
+    if index > 0 {
+      builder.write_char(',')
+    }
+    write_line_class_count(builder, count)
+  }
   builder.write_string("],\"region_counts\":[")
   for index, count in frame.region_counts() {
     if index > 0 {
       builder.write_char(',')
     }
     write_region_count(builder, count)
+  }
+  builder.write_string("],\"region_class_counts\":[")
+  for index, count in frame.region_class_counts() {
+    if index > 0 {
+      builder.write_char(',')
+    }
+    write_region_class_count(builder, count)
   }
   builder.write_string("],\"occupants\":[")
   for index, occupant in frame.occupants() {

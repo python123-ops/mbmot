@@ -44,8 +44,10 @@ pub(all) enum AnalyticsEvent {
 type AnalyticsFrame derive(Eq, @debug.Debug)
 pub fn AnalyticsFrame::events(Self) -> Array[AnalyticsEvent]
 pub fn AnalyticsFrame::frame_id(Self) -> Int
+pub fn AnalyticsFrame::line_class_counts(Self) -> Array[LineClassCount]
 pub fn AnalyticsFrame::line_counts(Self) -> Array[LineCount]
 pub fn AnalyticsFrame::occupants(Self) -> Array[RegionOccupant]
+pub fn AnalyticsFrame::region_class_counts(Self) -> Array[RegionClassCount]
 pub fn AnalyticsFrame::region_counts(Self) -> Array[RegionCount]
 
 pub(all) enum Anchor {
@@ -66,6 +68,12 @@ pub fn DirectedLine::id(Self) -> Int
 pub fn DirectedLine::new(Int, Point, Point) -> Self raise AnalyticsError
 pub fn DirectedLine::start(Self) -> Point
 
+type LineClassCount derive(Eq, @debug.Debug)
+pub fn LineClassCount::class_id(Self) -> Int
+pub fn LineClassCount::left_to_right(Self) -> Int
+pub fn LineClassCount::line_id(Self) -> Int
+pub fn LineClassCount::right_to_left(Self) -> Int
+
 type LineCount derive(Eq, @debug.Debug)
 pub fn LineCount::left_to_right(Self) -> Int
 pub fn LineCount::line_id(Self) -> Int
@@ -82,6 +90,14 @@ pub fn PolygonRegion::for_classes(Int, Array[Point], Array[Int]) -> Self raise A
 pub fn PolygonRegion::id(Self) -> Int
 pub fn PolygonRegion::new(Int, Array[Point]) -> Self raise AnalyticsError
 pub fn PolygonRegion::vertices(Self) -> Array[Point]
+
+type RegionClassCount derive(Eq, @debug.Debug)
+pub fn RegionClassCount::class_id(Self) -> Int
+pub fn RegionClassCount::current_occupancy(Self) -> Int
+pub fn RegionClassCount::entries(Self) -> Int
+pub fn RegionClassCount::exits(Self) -> Int
+pub fn RegionClassCount::region_id(Self) -> Int
+pub fn RegionClassCount::unique_tracks(Self) -> Int
 
 type RegionCount derive(Eq, @debug.Debug)
 pub fn RegionCount::current_occupancy(Self) -> Int

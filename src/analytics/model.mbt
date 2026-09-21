@@ -350,6 +350,35 @@ pub fn LineCount::right_to_left(self : LineCount) -> Int {
 }
 
 ///|
+/// Cumulative crossings for one class on one directed line.
+struct LineClassCount {
+  line_id : Int
+  class_id : Int
+  left_to_right : Int
+  right_to_left : Int
+} derive(Debug, Eq)
+
+///|
+pub fn LineClassCount::line_id(self : LineClassCount) -> Int {
+  self.line_id
+}
+
+///|
+pub fn LineClassCount::class_id(self : LineClassCount) -> Int {
+  self.class_id
+}
+
+///|
+pub fn LineClassCount::left_to_right(self : LineClassCount) -> Int {
+  self.left_to_right
+}
+
+///|
+pub fn LineClassCount::right_to_left(self : LineClassCount) -> Int {
+  self.right_to_left
+}
+
+///|
 /// Cumulative entries, exits and unique identities for one region.
 struct RegionCount {
   region_id : Int
@@ -381,6 +410,47 @@ pub fn RegionCount::unique_tracks(self : RegionCount) -> Int {
 
 ///|
 pub fn RegionCount::current_occupancy(self : RegionCount) -> Int {
+  self.current_occupancy
+}
+
+///|
+/// Cumulative entries, exits and current occupancy for one class in one region.
+struct RegionClassCount {
+  region_id : Int
+  class_id : Int
+  entries : Int
+  exits : Int
+  unique_tracks : Int
+  current_occupancy : Int
+} derive(Debug, Eq)
+
+///|
+pub fn RegionClassCount::region_id(self : RegionClassCount) -> Int {
+  self.region_id
+}
+
+///|
+pub fn RegionClassCount::class_id(self : RegionClassCount) -> Int {
+  self.class_id
+}
+
+///|
+pub fn RegionClassCount::entries(self : RegionClassCount) -> Int {
+  self.entries
+}
+
+///|
+pub fn RegionClassCount::exits(self : RegionClassCount) -> Int {
+  self.exits
+}
+
+///|
+pub fn RegionClassCount::unique_tracks(self : RegionClassCount) -> Int {
+  self.unique_tracks
+}
+
+///|
+pub fn RegionClassCount::current_occupancy(self : RegionClassCount) -> Int {
   self.current_occupancy
 }
 
@@ -419,7 +489,9 @@ struct AnalyticsFrame {
   frame_id : Int
   events : Array[AnalyticsEvent]
   line_counts : Array[LineCount]
+  line_class_counts : Array[LineClassCount]
   region_counts : Array[RegionCount]
+  region_class_counts : Array[RegionClassCount]
   occupants : Array[RegionOccupant]
 } derive(Debug, Eq)
 
@@ -439,10 +511,24 @@ pub fn AnalyticsFrame::line_counts(self : AnalyticsFrame) -> Array[LineCount] {
 }
 
 ///|
+pub fn AnalyticsFrame::line_class_counts(
+  self : AnalyticsFrame,
+) -> Array[LineClassCount] {
+  self.line_class_counts.copy()
+}
+
+///|
 pub fn AnalyticsFrame::region_counts(
   self : AnalyticsFrame,
 ) -> Array[RegionCount] {
   self.region_counts.copy()
+}
+
+///|
+pub fn AnalyticsFrame::region_class_counts(
+  self : AnalyticsFrame,
+) -> Array[RegionClassCount] {
+  self.region_class_counts.copy()
 }
 
 ///|
