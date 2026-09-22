@@ -49,6 +49,7 @@ pub fn AnalyticsFrame::line_counts(Self) -> Array[LineCount]
 pub fn AnalyticsFrame::occupants(Self) -> Array[RegionOccupant]
 pub fn AnalyticsFrame::region_class_counts(Self) -> Array[RegionClassCount]
 pub fn AnalyticsFrame::region_counts(Self) -> Array[RegionCount]
+pub fn AnalyticsFrame::transition_counts(Self) -> Array[RegionTransitionCount]
 
 pub(all) enum Anchor {
   Center
@@ -73,11 +74,15 @@ pub fn LineClassCount::class_id(Self) -> Int
 pub fn LineClassCount::left_to_right(Self) -> Int
 pub fn LineClassCount::line_id(Self) -> Int
 pub fn LineClassCount::right_to_left(Self) -> Int
+pub fn LineClassCount::unique_left_to_right(Self) -> Int
+pub fn LineClassCount::unique_right_to_left(Self) -> Int
 
 type LineCount derive(Eq, @debug.Debug)
 pub fn LineCount::left_to_right(Self) -> Int
 pub fn LineCount::line_id(Self) -> Int
 pub fn LineCount::right_to_left(Self) -> Int
+pub fn LineCount::unique_left_to_right(Self) -> Int
+pub fn LineCount::unique_right_to_left(Self) -> Int
 
 type Point derive(Eq, @debug.Debug)
 pub fn Point::new(Double, Double) -> Self raise AnalyticsError
@@ -93,16 +98,20 @@ pub fn PolygonRegion::vertices(Self) -> Array[Point]
 
 type RegionClassCount derive(Eq, @debug.Debug)
 pub fn RegionClassCount::class_id(Self) -> Int
+pub fn RegionClassCount::completed_dwell_frames(Self) -> Int
 pub fn RegionClassCount::current_occupancy(Self) -> Int
 pub fn RegionClassCount::entries(Self) -> Int
 pub fn RegionClassCount::exits(Self) -> Int
+pub fn RegionClassCount::peak_occupancy(Self) -> Int
 pub fn RegionClassCount::region_id(Self) -> Int
 pub fn RegionClassCount::unique_tracks(Self) -> Int
 
 type RegionCount derive(Eq, @debug.Debug)
+pub fn RegionCount::completed_dwell_frames(Self) -> Int
 pub fn RegionCount::current_occupancy(Self) -> Int
 pub fn RegionCount::entries(Self) -> Int
 pub fn RegionCount::exits(Self) -> Int
+pub fn RegionCount::peak_occupancy(Self) -> Int
 pub fn RegionCount::region_id(Self) -> Int
 pub fn RegionCount::unique_tracks(Self) -> Int
 
@@ -111,6 +120,12 @@ pub fn RegionOccupant::class_id(Self) -> Int
 pub fn RegionOccupant::dwell_frames(Self) -> Int
 pub fn RegionOccupant::region_id(Self) -> Int
 pub fn RegionOccupant::track_id(Self) -> Int
+
+type RegionTransitionCount derive(Eq, @debug.Debug)
+pub fn RegionTransitionCount::class_id(Self) -> Int
+pub fn RegionTransitionCount::count(Self) -> Int
+pub fn RegionTransitionCount::from_region_id(Self) -> Int
+pub fn RegionTransitionCount::to_region_id(Self) -> Int
 
 type SpatialAnalyzer
 pub fn SpatialAnalyzer::new(AnalyticsConfig, Array[DirectedLine], Array[PolygonRegion]) -> Self raise AnalyticsError

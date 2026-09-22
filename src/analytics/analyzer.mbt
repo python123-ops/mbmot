@@ -21,12 +21,15 @@ priv struct TrackState {
   class_id : Int
   lines : Array[LineState]
   regions : Array[RegionState]
+  mut last_exit_region : Int?
 }
 
 ///|
 priv struct LineTotals {
   mut left_to_right : Int
   mut right_to_left : Int
+  unique_left_ids : Array[Int]
+  unique_right_ids : Array[Int]
 }
 
 ///|
@@ -34,6 +37,8 @@ priv struct LineClassTotals {
   class_id : Int
   mut left_to_right : Int
   mut right_to_left : Int
+  unique_left_ids : Array[Int]
+  unique_right_ids : Array[Int]
 }
 
 ///|
@@ -41,6 +46,8 @@ priv struct RegionTotals {
   mut entries : Int
   mut exits : Int
   unique_ids : Array[Int]
+  mut peak_occupancy : Int
+  mut completed_dwell_frames : Int
 }
 
 ///|
@@ -49,6 +56,16 @@ priv struct RegionClassTotals {
   mut entries : Int
   mut exits : Int
   unique_ids : Array[Int]
+  mut peak_occupancy : Int
+  mut completed_dwell_frames : Int
+}
+
+///|
+priv struct TransitionTotals {
+  from_region_id : Int
+  to_region_id : Int
+  class_id : Int
+  mut count : Int
 }
 
 ///|
@@ -63,6 +80,7 @@ struct SpatialAnalyzer {
   mut line_class_totals : Array[Array[LineClassTotals]]
   mut region_totals : Array[RegionTotals]
   mut region_class_totals : Array[Array[RegionClassTotals]]
+  mut transition_totals : Array[TransitionTotals]
   mut last_frame : Int?
 }
 
@@ -99,14 +117,22 @@ pub fn SpatialAnalyzer::new(
     regions: sorted_regions,
     tracks: [],
     removed_ids: [],
-    line_totals: sorted_lines.map(_ => { left_to_right: 0, right_to_left: 0, }),
+    line_totals: sorted_lines.map(_ => {
+      left_to_right: 0,
+      right_to_left: 0,
+      unique_left_ids: [],
+      unique_right_ids: [],
+    }),
     line_class_totals: sorted_lines.map(_ => []),
     region_totals: sorted_regions.map(_ => {
       entries: 0,
       exits: 0,
       unique_ids: [],
+      peak_occupancy: 0,
+      completed_dwell_frames: 0,
     }),
     region_class_totals: sorted_regions.map(_ => []),
+    transition_totals: [],
     last_frame: None,
   }
 }
@@ -139,6 +165,7 @@ fn TrackState::copy_state(self : TrackState) -> TrackState {
     class_id: self.class_id,
     lines: self.lines.map(state => state.copy_state()),
     regions: self.regions.map(state => state.copy_state()),
+    last_exit_region: self.last_exit_region,
   }
 }
 
@@ -164,6 +191,7 @@ fn new_track_state(
       candidate_start: 0,
       entry_frame: None,
     }),
+    last_exit_region: None,
   }
 }
 
@@ -318,10 +346,22 @@ fn advance_line(
     LeftToRight => {
       totals.left_to_right += 1
       class_totals.left_to_right += 1
+      if !contains_id(totals.unique_left_ids, track_id) {
+        totals.unique_left_ids.push(track_id)
+      }
+      if !contains_id(class_totals.unique_left_ids, track_id) {
+        class_totals.unique_left_ids.push(track_id)
+      }
     }
     RightToLeft => {
       totals.right_to_left += 1
       class_totals.right_to_left += 1
+      if !contains_id(totals.unique_right_ids, track_id) {
+        totals.unique_right_ids.push(track_id)
+      }
+      if !contains_id(class_totals.unique_right_ids, track_id) {
+        class_totals.unique_right_ids.push(track_id)
+      }
     }
   }
   events.push(LineCrossed(line_id~, track_id~, direction~))
@@ -354,7 +394,13 @@ fn ensure_line_class_totals(
       return total
     }
   }
-  let total = { class_id, left_to_right: 0, right_to_left: 0, }
+  let total = {
+    class_id,
+    left_to_right: 0,
+    right_to_left: 0,
+    unique_left_ids: [],
+    unique_right_ids: [],
+  }
   totals.push(total)
   total
 }
@@ -369,9 +415,73 @@ fn ensure_region_class_totals(
       return total
     }
   }
-  let total = { class_id, entries: 0, exits: 0, unique_ids: [], }
+  let total = {
+    class_id,
+    entries: 0,
+    exits: 0,
+    unique_ids: [],
+    peak_occupancy: 0,
+    completed_dwell_frames: 0,
+  }
   totals.push(total)
   total
+}
+
+///|
+fn record_transition(
+  totals : Array[TransitionTotals],
+  from_region_id : Int,
+  to_region_id : Int,
+  class_id : Int,
+) -> Unit {
+  for total in totals {
+    if total.from_region_id == from_region_id &&
+      total.to_region_id == to_region_id &&
+      total.class_id == class_id {
+      total.count += 1
+      return
+    }
+  }
+  totals.push({ from_region_id, to_region_id, class_id, count: 1, })
+}
+
+///|
+fn advance_transitions(
+  state : TrackState,
+  events : Array[AnalyticsEvent],
+  start : Int,
+  totals : Array[TransitionTotals],
+) -> Unit {
+  // Every event in this range belongs to one visible track. Record exits first,
+  // independently of the numeric order of overlapping region rules.
+  let mut first_exit : Int? = None
+  for index in start..<events.length() {
+    match events[index] {
+      RegionExited(region_id~, ..) =>
+        if first_exit is None {
+          first_exit = Some(region_id)
+        }
+      _ => ()
+    }
+  }
+  if first_exit is Some(_) {
+    state.last_exit_region = first_exit
+  }
+  for index in start..<events.length() {
+    match events[index] {
+      RegionEntered(region_id~, initial~, ..) => {
+        if !initial {
+          match state.last_exit_region {
+            Some(previous) if previous != region_id =>
+              record_transition(totals, previous, region_id, state.class_id)
+            _ => ()
+          }
+        }
+        state.last_exit_region = None
+      }
+      _ => ()
+    }
+  }
 }
 
 ///|
@@ -459,7 +569,9 @@ fn advance_region(
         }
         state.entry_frame = None
         totals.exits += 1
+        totals.completed_dwell_frames += dwell_frames
         class_totals.exits += 1
+        class_totals.completed_dwell_frames += dwell_frames
         events.push(RegionExited(region_id~, track_id~, dwell_frames~))
       }
       state.candidate_inside = None
@@ -501,6 +613,7 @@ fn make_frame(
   line_class_totals : Array[Array[LineClassTotals]],
   region_totals : Array[RegionTotals],
   region_class_totals : Array[Array[RegionClassTotals]],
+  transition_totals : Array[TransitionTotals],
   events : Array[AnalyticsEvent],
 ) -> AnalyticsFrame {
   events.sort_by(compare_event)
@@ -508,6 +621,8 @@ fn make_frame(
     line_id: lines[index].id,
     left_to_right: line_totals[index].left_to_right,
     right_to_left: line_totals[index].right_to_left,
+    unique_left_to_right: line_totals[index].unique_left_ids.length(),
+    unique_right_to_left: line_totals[index].unique_right_ids.length(),
   })
   let line_class_counts : Array[LineClassCount] = []
   for line_index, line in lines {
@@ -519,6 +634,8 @@ fn make_frame(
         class_id: total.class_id,
         left_to_right: total.left_to_right,
         right_to_left: total.right_to_left,
+        unique_left_to_right: total.unique_left_ids.length(),
+        unique_right_to_left: total.unique_right_ids.length(),
       })
     }
   }
@@ -546,12 +663,17 @@ fn make_frame(
         occupancy += 1
       }
     }
+    if occupancy > region_totals[region_index].peak_occupancy {
+      region_totals[region_index].peak_occupancy = occupancy
+    }
     region_counts.push({
       region_id: region.id,
       entries: region_totals[region_index].entries,
       exits: region_totals[region_index].exits,
       unique_tracks: region_totals[region_index].unique_ids.length(),
       current_occupancy: occupancy,
+      peak_occupancy: region_totals[region_index].peak_occupancy,
+      completed_dwell_frames: region_totals[region_index].completed_dwell_frames,
     })
     let sorted = region_class_totals[region_index].copy()
     sorted.sort_by((left, right) => left.class_id.compare(right.class_id))
@@ -564,6 +686,9 @@ fn make_frame(
           count
         }
       })
+      if class_occupancy > total.peak_occupancy {
+        total.peak_occupancy = class_occupancy
+      }
       region_class_counts.push({
         region_id: region.id,
         class_id: total.class_id,
@@ -571,6 +696,8 @@ fn make_frame(
         exits: total.exits,
         unique_tracks: total.unique_ids.length(),
         current_occupancy: class_occupancy,
+        peak_occupancy: total.peak_occupancy,
+        completed_dwell_frames: total.completed_dwell_frames,
       })
     }
   }
@@ -581,6 +708,23 @@ fn make_frame(
       left.track_id.compare(right.track_id)
     }
   })
+  let sorted_transitions = transition_totals.copy()
+  sorted_transitions.sort_by((left, right) => {
+    if left.from_region_id != right.from_region_id {
+      left.from_region_id.compare(right.from_region_id)
+    } else if left.to_region_id != right.to_region_id {
+      left.to_region_id.compare(right.to_region_id)
+    } else {
+      left.class_id.compare(right.class_id)
+    }
+  })
+  let transition_counts : Array[RegionTransitionCount] = sorted_transitions.map(total => {
+      from_region_id: total.from_region_id,
+      to_region_id: total.to_region_id,
+      class_id: total.class_id,
+      count: total.count,
+    },
+  )
   {
     frame_id,
     events,
@@ -588,6 +732,7 @@ fn make_frame(
     line_class_counts,
     region_counts,
     region_class_counts,
+    transition_counts,
     occupants,
   }
 }
@@ -612,18 +757,24 @@ pub fn SpatialAnalyzer::update(
   let working_lines = self.line_totals.map(total => {
     left_to_right: total.left_to_right,
     right_to_left: total.right_to_left,
+    unique_left_ids: total.unique_left_ids.copy(),
+    unique_right_ids: total.unique_right_ids.copy(),
   })
   let working_line_classes = self.line_class_totals.map(totals => {
     totals.map(total => {
       class_id: total.class_id,
       left_to_right: total.left_to_right,
       right_to_left: total.right_to_left,
+      unique_left_ids: total.unique_left_ids.copy(),
+      unique_right_ids: total.unique_right_ids.copy(),
     })
   })
   let working_regions = self.region_totals.map(total => {
     entries: total.entries,
     exits: total.exits,
     unique_ids: total.unique_ids.copy(),
+    peak_occupancy: total.peak_occupancy,
+    completed_dwell_frames: total.completed_dwell_frames,
   })
   let working_region_classes = self.region_class_totals.map(totals => {
     totals.map(total => {
@@ -631,8 +782,17 @@ pub fn SpatialAnalyzer::update(
       entries: total.entries,
       exits: total.exits,
       unique_ids: total.unique_ids.copy(),
+      peak_occupancy: total.peak_occupancy,
+      completed_dwell_frames: total.completed_dwell_frames,
     })
   })
+  let working_transitions : Array[TransitionTotals] = self.transition_totals.map(total => {
+      from_region_id: total.from_region_id,
+      to_region_id: total.to_region_id,
+      class_id: total.class_id,
+      count: total.count,
+    },
+  )
   for id in lost {
     guard find_track(working_tracks, id) is Some(index) else { continue }
     for line_state in working_tracks[index].lines {
@@ -641,6 +801,7 @@ pub fn SpatialAnalyzer::update(
     for region_state in working_tracks[index].regions {
       region_state.interrupt()
     }
+    working_tracks[index].last_exit_region = None
   }
   for id in removed {
     working_removed.push(id)
@@ -663,6 +824,7 @@ pub fn SpatialAnalyzer::update(
     }
     let state = retained[state_index]
     let point = sample.anchor_point(self.config.anchor)
+    let event_start = events.length()
     for line_index, line in self.lines {
       if !line.accepts_class(state.class_id) {
         continue
@@ -702,6 +864,7 @@ pub fn SpatialAnalyzer::update(
         events,
       )
     }
+    advance_transitions(state, events, event_start, working_transitions)
   }
   retained.sort_by((left, right) => left.track_id.compare(right.track_id))
   working_removed.sort()
@@ -716,6 +879,7 @@ pub fn SpatialAnalyzer::update(
     working_line_classes,
     working_regions,
     working_region_classes,
+    working_transitions,
     events,
   )
   self.tracks = retained
@@ -724,6 +888,7 @@ pub fn SpatialAnalyzer::update(
   self.line_class_totals = working_line_classes
   self.region_totals = working_regions
   self.region_class_totals = working_region_classes
+  self.transition_totals = working_transitions
   self.last_frame = Some(frame_id)
   frame
 }
@@ -748,13 +913,21 @@ pub fn SpatialAnalyzer::update_mbmot(
 pub fn SpatialAnalyzer::reset(self : SpatialAnalyzer) -> Unit {
   self.tracks = []
   self.removed_ids = []
-  self.line_totals = self.lines.map(_ => { left_to_right: 0, right_to_left: 0, })
+  self.line_totals = self.lines.map(_ => {
+    left_to_right: 0,
+    right_to_left: 0,
+    unique_left_ids: [],
+    unique_right_ids: [],
+  })
   self.line_class_totals = self.lines.map(_ => [])
   self.region_totals = self.regions.map(_ => {
     entries: 0,
     exits: 0,
     unique_ids: [],
+    peak_occupancy: 0,
+    completed_dwell_frames: 0,
   })
   self.region_class_totals = self.regions.map(_ => [])
+  self.transition_totals = []
   self.last_frame = None
 }

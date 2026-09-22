@@ -369,6 +369,35 @@ test "line crossings count both directions" {
 }
 
 ///|
+test "repeated crossings preserve separate directional unique identities" {
+  let subject = analyzer(1, [horizontal_line(3)], [])
+  ignore(subject.update(1, [sample_at_class(1, 5.0, 2.0, 2)], [], []))
+  ignore(subject.update(2, [sample_at_class(1, 5.0, -2.0, 2)], [], []))
+  ignore(subject.update(3, [sample_at_class(1, 5.0, 2.0, 2)], [], []))
+  let repeated = subject.update(4, [sample_at_class(1, 5.0, -2.0, 2)], [], [])
+  assert_eq(repeated.line_counts()[0].left_to_right(), 2)
+  assert_eq(repeated.line_counts()[0].unique_left_to_right(), 1)
+  assert_eq(repeated.line_counts()[0].unique_right_to_left(), 1)
+  assert_eq(repeated.line_class_counts()[0].unique_left_to_right(), 1)
+  let another = subject.update(
+    5,
+    [sample_at_class(1, 5.0, -2.0, 2), sample_at_class(2, 5.0, 2.0, 1)],
+    [],
+    [],
+  )
+  assert_eq(another.line_counts()[0].unique_left_to_right(), 1)
+  let both = subject.update(
+    6,
+    [sample_at_class(1, 5.0, -2.0, 2), sample_at_class(2, 5.0, -2.0, 1)],
+    [],
+    [],
+  )
+  assert_eq(both.line_counts()[0].unique_left_to_right(), 2)
+  assert_eq(both.line_class_counts()[0].class_id(), 1)
+  assert_eq(both.line_class_counts()[0].unique_left_to_right(), 1)
+}
+
+///|
 test "line boundary does not advance debounce evidence" {
   let subject = analyzer(2, [horizontal_line(0)], [])
   ignore(subject.update(1, [sample_at(1, 5.0, 2.0)], [], []))
@@ -411,6 +440,52 @@ test "region entry and exit use real frame ids for dwell" {
   ])
   assert_eq(exited.region_counts()[0].exits(), 1)
   assert_eq(exited.region_counts()[0].current_occupancy(), 0)
+  assert_eq(exited.region_counts()[0].completed_dwell_frames(), 6)
+  assert_eq(exited.region_class_counts()[0].completed_dwell_frames(), 6)
+}
+
+///|
+test "peak occupancy persists after lost and exits" {
+  let subject = analyzer(1, [], [square(0)])
+  let entered = subject.update(
+    1,
+    [sample_at_class(1, 5.0, 5.0, 0), sample_at_class(2, 6.0, 5.0, 1)],
+    [],
+    [],
+  )
+  assert_eq(entered.region_counts()[0].peak_occupancy(), 2)
+  assert_eq(entered.region_class_counts()[0].peak_occupancy(), 1)
+  let lost = subject.update(2, [sample_at_class(1, 5.0, 5.0, 0)], [2], [])
+  assert_eq(lost.region_counts()[0].current_occupancy(), 1)
+  assert_eq(lost.region_counts()[0].peak_occupancy(), 2)
+  let exited = subject.update(4, [sample_at_class(1, 12.0, 5.0, 0)], [], [])
+  assert_eq(exited.region_counts()[0].completed_dwell_frames(), 3)
+  assert_eq(exited.region_counts()[0].peak_occupancy(), 2)
+  assert_eq(exited.region_class_counts()[0].completed_dwell_frames(), 3)
+}
+
+///|
+test "region transitions require observed exits and noninitial entries" {
+  let second = @analytics.PolygonRegion::new(2, [
+    point(20.0, 0.0),
+    point(30.0, 0.0),
+    point(30.0, 10.0),
+    point(20.0, 10.0),
+  ])
+  let subject = analyzer(1, [], [square(1), second])
+  let initial = subject.update(1, [sample_at(1, 5.0, 5.0)], [], [])
+  assert_eq(initial.transition_counts().length(), 0)
+  ignore(subject.update(2, [sample_at(1, 15.0, 5.0)], [], []))
+  let entered = subject.update(3, [sample_at(1, 25.0, 5.0)], [], [])
+  assert_eq(entered.transition_counts().length(), 1)
+  assert_eq(entered.transition_counts()[0].from_region_id(), 1)
+  assert_eq(entered.transition_counts()[0].to_region_id(), 2)
+  assert_eq(entered.transition_counts()[0].class_id(), 0)
+  assert_eq(entered.transition_counts()[0].count(), 1)
+  ignore(subject.update(4, [sample_at(1, 15.0, 5.0)], [], []))
+  ignore(subject.update(5, [], [1], []))
+  let recovered = subject.update(6, [sample_at(1, 5.0, 5.0)], [], [])
+  assert_eq(recovered.transition_counts()[0].count(), 1)
 }
 
 ///|

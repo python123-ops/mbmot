@@ -332,6 +332,8 @@ struct LineCount {
   line_id : Int
   left_to_right : Int
   right_to_left : Int
+  unique_left_to_right : Int
+  unique_right_to_left : Int
 } derive(Debug, Eq)
 
 ///|
@@ -350,12 +352,24 @@ pub fn LineCount::right_to_left(self : LineCount) -> Int {
 }
 
 ///|
+pub fn LineCount::unique_left_to_right(self : LineCount) -> Int {
+  self.unique_left_to_right
+}
+
+///|
+pub fn LineCount::unique_right_to_left(self : LineCount) -> Int {
+  self.unique_right_to_left
+}
+
+///|
 /// Cumulative crossings for one class on one directed line.
 struct LineClassCount {
   line_id : Int
   class_id : Int
   left_to_right : Int
   right_to_left : Int
+  unique_left_to_right : Int
+  unique_right_to_left : Int
 } derive(Debug, Eq)
 
 ///|
@@ -379,6 +393,16 @@ pub fn LineClassCount::right_to_left(self : LineClassCount) -> Int {
 }
 
 ///|
+pub fn LineClassCount::unique_left_to_right(self : LineClassCount) -> Int {
+  self.unique_left_to_right
+}
+
+///|
+pub fn LineClassCount::unique_right_to_left(self : LineClassCount) -> Int {
+  self.unique_right_to_left
+}
+
+///|
 /// Cumulative entries, exits and unique identities for one region.
 struct RegionCount {
   region_id : Int
@@ -386,6 +410,8 @@ struct RegionCount {
   exits : Int
   unique_tracks : Int
   current_occupancy : Int
+  peak_occupancy : Int
+  completed_dwell_frames : Int
 } derive(Debug, Eq)
 
 ///|
@@ -414,6 +440,16 @@ pub fn RegionCount::current_occupancy(self : RegionCount) -> Int {
 }
 
 ///|
+pub fn RegionCount::peak_occupancy(self : RegionCount) -> Int {
+  self.peak_occupancy
+}
+
+///|
+pub fn RegionCount::completed_dwell_frames(self : RegionCount) -> Int {
+  self.completed_dwell_frames
+}
+
+///|
 /// Cumulative entries, exits and current occupancy for one class in one region.
 struct RegionClassCount {
   region_id : Int
@@ -422,6 +458,8 @@ struct RegionClassCount {
   exits : Int
   unique_tracks : Int
   current_occupancy : Int
+  peak_occupancy : Int
+  completed_dwell_frames : Int
 } derive(Debug, Eq)
 
 ///|
@@ -452,6 +490,47 @@ pub fn RegionClassCount::unique_tracks(self : RegionClassCount) -> Int {
 ///|
 pub fn RegionClassCount::current_occupancy(self : RegionClassCount) -> Int {
   self.current_occupancy
+}
+
+///|
+pub fn RegionClassCount::peak_occupancy(self : RegionClassCount) -> Int {
+  self.peak_occupancy
+}
+
+///|
+pub fn RegionClassCount::completed_dwell_frames(self : RegionClassCount) -> Int {
+  self.completed_dwell_frames
+}
+
+///|
+/// A confirmed exit from one region followed by entry into another.
+struct RegionTransitionCount {
+  from_region_id : Int
+  to_region_id : Int
+  class_id : Int
+  count : Int
+} derive(Debug, Eq)
+
+///|
+pub fn RegionTransitionCount::from_region_id(
+  self : RegionTransitionCount,
+) -> Int {
+  self.from_region_id
+}
+
+///|
+pub fn RegionTransitionCount::to_region_id(self : RegionTransitionCount) -> Int {
+  self.to_region_id
+}
+
+///|
+pub fn RegionTransitionCount::class_id(self : RegionTransitionCount) -> Int {
+  self.class_id
+}
+
+///|
+pub fn RegionTransitionCount::count(self : RegionTransitionCount) -> Int {
+  self.count
 }
 
 ///|
@@ -492,6 +571,7 @@ struct AnalyticsFrame {
   line_class_counts : Array[LineClassCount]
   region_counts : Array[RegionCount]
   region_class_counts : Array[RegionClassCount]
+  transition_counts : Array[RegionTransitionCount]
   occupants : Array[RegionOccupant]
 } derive(Debug, Eq)
 
@@ -529,6 +609,13 @@ pub fn AnalyticsFrame::region_class_counts(
   self : AnalyticsFrame,
 ) -> Array[RegionClassCount] {
   self.region_class_counts.copy()
+}
+
+///|
+pub fn AnalyticsFrame::transition_counts(
+  self : AnalyticsFrame,
+) -> Array[RegionTransitionCount] {
+  self.transition_counts.copy()
 }
 
 ///|

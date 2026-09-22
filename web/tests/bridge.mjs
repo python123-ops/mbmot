@@ -23,6 +23,10 @@ assert.equal(output.result.tracking.tracks[0].track_id, 1);
 assert.equal(output.result.analytics.region_counts[0].current_occupancy, 1);
 assert.equal(output.result.analytics.line_class_counts[0].class_id, 0);
 assert.equal(output.result.analytics.region_class_counts[0].class_id, 0);
+assert.equal(output.result.analytics.line_counts[0].unique_left_to_right, 0);
+assert.equal(output.result.analytics.region_counts[0].peak_occupancy, 1);
+assert.equal(output.result.analytics.region_counts[0].completed_dwell_frames, 0);
+assert.deepEqual(output.result.analytics.transition_counts, []);
 assert.equal(
   output.result.analytics.region_class_counts[0].current_occupancy,
   1,

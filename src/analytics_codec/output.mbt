@@ -30,7 +30,7 @@ fn write_line_count(
   count : @analytics.LineCount,
 ) -> Unit {
   builder.write_string(
-    "{\"line_id\":\{count.line_id()},\"left_to_right\":\{count.left_to_right()},\"right_to_left\":\{count.right_to_left()}}",
+    "{\"line_id\":\{count.line_id()},\"left_to_right\":\{count.left_to_right()},\"right_to_left\":\{count.right_to_left()},\"unique_left_to_right\":\{count.unique_left_to_right()},\"unique_right_to_left\":\{count.unique_right_to_left()}}",
   )
 }
 
@@ -40,7 +40,7 @@ fn write_line_class_count(
   count : @analytics.LineClassCount,
 ) -> Unit {
   builder.write_string(
-    "{\"line_id\":\{count.line_id()},\"class_id\":\{count.class_id()},\"left_to_right\":\{count.left_to_right()},\"right_to_left\":\{count.right_to_left()}}",
+    "{\"line_id\":\{count.line_id()},\"class_id\":\{count.class_id()},\"left_to_right\":\{count.left_to_right()},\"right_to_left\":\{count.right_to_left()},\"unique_left_to_right\":\{count.unique_left_to_right()},\"unique_right_to_left\":\{count.unique_right_to_left()}}",
   )
 }
 
@@ -50,7 +50,7 @@ fn write_region_count(
   count : @analytics.RegionCount,
 ) -> Unit {
   builder.write_string(
-    "{\"region_id\":\{count.region_id()},\"entries\":\{count.entries()},\"exits\":\{count.exits()},\"unique_tracks\":\{count.unique_tracks()},\"current_occupancy\":\{count.current_occupancy()}}",
+    "{\"region_id\":\{count.region_id()},\"entries\":\{count.entries()},\"exits\":\{count.exits()},\"unique_tracks\":\{count.unique_tracks()},\"current_occupancy\":\{count.current_occupancy()},\"peak_occupancy\":\{count.peak_occupancy()},\"completed_dwell_frames\":\{count.completed_dwell_frames()}}",
   )
 }
 
@@ -60,7 +60,17 @@ fn write_region_class_count(
   count : @analytics.RegionClassCount,
 ) -> Unit {
   builder.write_string(
-    "{\"region_id\":\{count.region_id()},\"class_id\":\{count.class_id()},\"entries\":\{count.entries()},\"exits\":\{count.exits()},\"unique_tracks\":\{count.unique_tracks()},\"current_occupancy\":\{count.current_occupancy()}}",
+    "{\"region_id\":\{count.region_id()},\"class_id\":\{count.class_id()},\"entries\":\{count.entries()},\"exits\":\{count.exits()},\"unique_tracks\":\{count.unique_tracks()},\"current_occupancy\":\{count.current_occupancy()},\"peak_occupancy\":\{count.peak_occupancy()},\"completed_dwell_frames\":\{count.completed_dwell_frames()}}",
+  )
+}
+
+///|
+fn write_transition_count(
+  builder : StringBuilder,
+  count : @analytics.RegionTransitionCount,
+) -> Unit {
+  builder.write_string(
+    "{\"from_region_id\":\{count.from_region_id()},\"to_region_id\":\{count.to_region_id()},\"class_id\":\{count.class_id()},\"count\":\{count.count()}}",
   )
 }
 
@@ -111,6 +121,13 @@ fn encode_analytics_frame(frame : @analytics.AnalyticsFrame) -> String {
       builder.write_char(',')
     }
     write_region_class_count(builder, count)
+  }
+  builder.write_string("],\"transition_counts\":[")
+  for index, count in frame.transition_counts() {
+    if index > 0 {
+      builder.write_char(',')
+    }
+    write_transition_count(builder, count)
   }
   builder.write_string("],\"occupants\":[")
   for index, occupant in frame.occupants() {

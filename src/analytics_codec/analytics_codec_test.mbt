@@ -79,7 +79,7 @@ test "frame output exposes deterministic region entry and occupancy" {
   assert_eq(
     output,
     Some(
-      "{\"frame\":2,\"events\":[{\"type\":\"region_entered\",\"region_id\":7,\"track_id\":1,\"initial\":false}],\"line_counts\":[{\"line_id\":4,\"left_to_right\":0,\"right_to_left\":0}],\"line_class_counts\":[{\"line_id\":4,\"class_id\":0,\"left_to_right\":0,\"right_to_left\":0}],\"region_counts\":[{\"region_id\":7,\"entries\":1,\"exits\":0,\"unique_tracks\":1,\"current_occupancy\":1}],\"region_class_counts\":[{\"region_id\":7,\"class_id\":0,\"entries\":1,\"exits\":0,\"unique_tracks\":1,\"current_occupancy\":1}],\"occupants\":[{\"region_id\":7,\"track_id\":1,\"class_id\":0,\"dwell_frames\":1}]}",
+      "{\"frame\":2,\"events\":[{\"type\":\"region_entered\",\"region_id\":7,\"track_id\":1,\"initial\":false}],\"line_counts\":[{\"line_id\":4,\"left_to_right\":0,\"right_to_left\":0,\"unique_left_to_right\":0,\"unique_right_to_left\":0}],\"line_class_counts\":[{\"line_id\":4,\"class_id\":0,\"left_to_right\":0,\"right_to_left\":0,\"unique_left_to_right\":0,\"unique_right_to_left\":0}],\"region_counts\":[{\"region_id\":7,\"entries\":1,\"exits\":0,\"unique_tracks\":1,\"current_occupancy\":1,\"peak_occupancy\":1,\"completed_dwell_frames\":0}],\"region_class_counts\":[{\"region_id\":7,\"class_id\":0,\"entries\":1,\"exits\":0,\"unique_tracks\":1,\"current_occupancy\":1,\"peak_occupancy\":1,\"completed_dwell_frames\":0}],\"transition_counts\":[],\"occupants\":[{\"region_id\":7,\"track_id\":1,\"class_id\":0,\"dwell_frames\":1}]}",
     ),
   )
 }
@@ -102,6 +102,25 @@ test "line crossings and region exits retain direction and dwell" {
     exited is Some(text) &&
     text.contains(
       "\"type\":\"region_exited\",\"region_id\":7,\"track_id\":1,\"dwell_frames\":4",
+    ),
+  )
+}
+
+///|
+test "region transfer is encoded after confirmed exit and entry" {
+  let session = AnalyticsReplaySession::new()
+  ignore(
+    session.process_line(
+      "{\"config\":{\"anchor\":\"bottom_center\",\"stable_frames\":1},\"lines\":[],\"regions\":[{\"id\":1,\"vertices\":[[0,0],[10,0],[10,10],[0,10]]},{\"id\":2,\"vertices\":[[20,0],[30,0],[30,10],[20,10]]}]}",
+    ),
+  )
+  ignore(session.process_line(frame_line(1, 5.0, class_id=2)))
+  ignore(session.process_line(frame_line(2, 15.0, class_id=2)))
+  let transferred = session.process_line(frame_line(3, 25.0, class_id=2))
+  assert_true(
+    transferred is Some(text) &&
+    text.contains(
+      "\"transition_counts\":[{\"from_region_id\":1,\"to_region_id\":2,\"class_id\":2,\"count\":1}]",
     ),
   )
 }

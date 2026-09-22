@@ -125,6 +125,8 @@ let selected_line = @analytics.DirectedLine::for_classes(
 
 每帧结果同时保留规则总计和分类明细。`AnalyticsFrame::line_class_counts()` 按“计数线编号、类别编号”返回双向累计值；`region_class_counts()` 按“区域编号、类别编号”返回进入、离开、唯一身份和当前占用。分类项在该类别第一次被对应规则接受时出现，即使尚未发生越线或进入事件也会返回零值，调用方因此可以直接绘制稳定的分类面板。lost 目标会立即退出当前分类占用，但已经累计的进入和唯一身份不会丢失。
 
+当前源码中的计数线还分别给出两个方向的唯一轨迹数：同一个身份反复越线会增加越线次数，但在同一方向只计为一个唯一身份。区域结果增加观测期间的峰值占用，以及仅在确认退出时累加的 `completed_dwell_frames`；lost 或 removed 不会凭空结束一次停留。`transition_counts` 记录同一身份确认离开一个区域后、再确认进入另一区域的次数，按来源区域、目标区域和类别排序。首次出现于区域内部不算转移，lost 会切断尚未完成的转移；当一帧同时退出多个重叠区域时，选编号最小的区域作为来源。
+
 仓库内的六帧样例依次展示进入、越线、短暂丢失、恢复和退出：
 
 ```bash
@@ -146,7 +148,7 @@ moon run src/analytics_demo --target native
 moon run src/analytics_replay --target native < examples/analytics.ndjson
 ```
 
-配置行不产生输出，每个帧行产生一个 JSON 对象。其中 `events` 是本帧确认的越线或区域状态变化，`line_counts` 和 `region_counts` 是截至当前帧的规则总计，`line_class_counts` 和 `region_class_counts` 给出同一结果的类别拆分，`occupants` 列出当前可见的区域内身份及停留帧数。完整输出保存在 [`examples/analytics.expected.ndjson`](examples/analytics.expected.ndjson)，CI 会逐字比较两者。
+配置行不产生输出，每个帧行产生一个 JSON 对象。其中 `events` 是本帧确认的越线或区域状态变化，`line_counts` 和 `region_counts` 是截至当前帧的规则总计，`line_class_counts` 和 `region_class_counts` 给出同一结果的类别拆分，`transition_counts` 列出已确认的跨区域转移，`occupants` 列出当前可见的区域内身份及停留帧数。完整输出保存在 [`examples/analytics.expected.ndjson`](examples/analytics.expected.ndjson)，CI 会逐字比较两者。
 
 规则对象中的 `class_ids` 可以省略；省略时接受全部类别，提供时采用与 MoonBit API 相同的非空、非负和无重复约束。
 
