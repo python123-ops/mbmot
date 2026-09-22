@@ -37,6 +37,15 @@ assert_eq(track.track_id(), 1)
 assert_eq(track.hits(), 1)
 ```
 
+仓库源码还提供逐帧 YOLO 中心框的转换命令。每行写明 `frame`、图像 `width` / `height`、`coordinates`（`normalized` 或 `pixels`），以及含 `cxcywh`、`score`、`class_id` 的检测列表；转换结果正是现有 replay 工具的输入。下面的两帧分别使用归一化和像素坐标，指向同一个框：
+
+```bash
+moon run src/yolo_import --target native < examples/yolo.ndjson
+moon run src/yolo_import --target native -- --classes '[2]' < examples/yolo.ndjson
+```
+
+这个源码接口尚未随 `0.2.0` 发布。归一化框必须完整位于 `[0,1]`；像素框可以伸出图像，但仍须具有有限坐标和正面积。类别筛选只决定哪些合法检测进入输出，不会掩盖被排除类别中的格式错误。错误带物理输入行号并以非零状态退出，此前已输出的完整行仍可使用。
+
 `BoundingBox::from_xywh` 接受左上角加宽高，`BoundingBox::from_cxcywh` 接受中心点加宽高，后者可直接承接 YOLO 常见的坐标顺序。两种构造都保留输入尺度：像素坐标和归一化坐标可以使用，但同一条流必须保持一致，库不会读取图像尺寸替调用方缩放。
 
 ## 逐帧契约

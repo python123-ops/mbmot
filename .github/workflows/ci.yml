@@ -39,6 +39,20 @@ jobs:
         run: |
           moon run src/replay --target native < examples/replay.ndjson > replay.actual.ndjson
           diff -u examples/replay.expected.ndjson replay.actual.ndjson
+      - name: Convert detector center boxes to replay input
+        run: |
+          moon run src/yolo_import --target native < examples/yolo.ndjson > yolo.actual.ndjson
+          diff -u examples/yolo.expected.ndjson yolo.actual.ndjson
+          moon run src/replay --target native < yolo.actual.ndjson > yolo.tracked.ndjson
+          test "$(wc -l < yolo.tracked.ndjson)" -eq 2
+          set +e
+          { head -n 1 examples/yolo.ndjson; printf '%s\n' '{"frame":2,"width":0,"height":50,"coordinates":"pixels","detections":[]}'; } \
+            | moon run src/yolo_import --target native > yolo.partial.ndjson 2> yolo.error.txt
+          status=$?
+          set -e
+          test "$status" -ne 0
+          test "$(wc -l < yolo.partial.ndjson)" -eq 1
+          grep -F 'line 2: invalid frame' yolo.error.txt
       - name: Check spatial event example
         run: |
           moon run src/analytics_demo --target native > analytics.actual.txt

@@ -1,0 +1,2 @@
+{"frame":1,"detections":[{"xyxy":[30,15,70,35],"score":0.9,"class_id":2}]}
+{"frame":2,"detections":[{"xyxy":[30,15,70,35],"score":0.8,"class_id":2}]}
