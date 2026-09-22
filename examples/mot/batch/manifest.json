@@ -1,0 +1,1 @@
+{"sequences":[{"name":"perfect","detections":"examples/mot/batch/first.det.txt","ground_truth":"examples/mot/batch/first.gt.txt"},{"name":"missed","detections":"examples/mot/batch/second.det.txt","ground_truth":"examples/mot/batch/second.gt.txt"}]}

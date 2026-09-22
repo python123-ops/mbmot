@@ -254,6 +254,14 @@ moon run src/mot_track --target native --release \
 
 仓库中的 [`benchmarks/MOT17-02-FRCNN.md`](benchmarks/MOT17-02-FRCNN.md) 记录了一次完整训练序列运行的输入哈希、参数、原始计数和 TrackEval 复核结果。该记录得到 HOTA 34.895、MOTA 32.404、IDF1 39.606 和 111 次身份切换；它是可复算的训练序列结果，不是测试集排行榜成绩。
 
+需要比较多个本地序列时，源码中的 `src/mot_batch` 接收一个 JSON 清单，每个条目写入唯一名称、检测文件和标注文件路径，路径按运行命令时的工作目录解析。命令逐序列重新跟踪和评测，再把 TP、FP、FN、IDTP 等原始计数相加计算总体值，不平均各序列百分比：
+
+```bash
+moon run src/mot_batch --target native -- examples/mot/batch/manifest.json
+```
+
+[`examples/mot/batch/expected.json`](examples/mot/batch/expected.json) 是两条小序列的逐字输出。还可用 `--baseline <先前报告.json> --max-mota-drop 0.02 --max-idf1-drop 0.02` 比较同名、同顺序、同 IoU 门限的报告；总体或任一序列的下降超过门槛时，命令仍输出带差值的报告，然后以非零状态退出。门槛以 0 到 1 的指标尺度表示，`0.02` 是两个百分点。本地 MOT17-02-FRCNN 与 MOT17-09-FRCNN 的运行输入和结果见 [`benchmarks/MOT17-two-sequences.md`](benchmarks/MOT17-two-sequences.md)。批量命令与此前新增的检测适配、空间计数接口都还没有纳入 mooncakes.io 的 `0.2.0`。
+
 ## License
 
 [MIT](LICENSE)

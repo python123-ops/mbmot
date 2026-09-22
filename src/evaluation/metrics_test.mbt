@@ -125,3 +125,53 @@ test "IoU threshold validation rejects zero" {
     _ => fail("zero IoU threshold must be rejected")
   }
 }
+
+///|
+test "batch metrics use summed observations rather than mean scores" {
+  let first = @evaluation.evaluate(
+    [object(1, 1, 0.0)],
+    [object(1, 7, 0.0)],
+    @evaluation.EvaluationConfig::default(),
+  )
+  let second = @evaluation.evaluate(
+    [object(1, 1, 0.0), object(2, 1, 0.0), object(3, 1, 0.0)],
+    [],
+    @evaluation.EvaluationConfig::default(),
+  )
+  let combined = @evaluation.combine_reports([first, second])
+  assert_eq(combined.frames(), 4)
+  assert_eq(combined.ground_truth_detections(), 4)
+  assert_eq(combined.true_positives(), 1)
+  assert_eq(combined.false_negatives(), 3)
+  assert_eq(combined.mota(), 0.25)
+  assert_eq(combined.idf1(), 0.4)
+}
+
+///|
+test "batch metrics reject empty input and mixed matching thresholds" {
+  try @evaluation.combine_reports([]) catch {
+    error =>
+      assert_eq(error.message(), "at least one sequence report is required")
+  } noraise {
+    _ => fail("empty batch must be rejected")
+  }
+  let first = @evaluation.evaluate(
+    [],
+    [],
+    @evaluation.EvaluationConfig::default(),
+  )
+  let second = @evaluation.evaluate(
+    [],
+    [],
+    @evaluation.EvaluationConfig::new(match_iou_threshold=0.7),
+  )
+  try @evaluation.combine_reports([first, second]) catch {
+    error =>
+      assert_eq(
+        error.message(),
+        "sequence reports use different IoU thresholds",
+      )
+  } noraise {
+    _ => fail("mixed thresholds must be rejected")
+  }
+}

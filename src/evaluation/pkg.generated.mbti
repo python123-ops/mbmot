@@ -7,6 +7,8 @@ import {
 }
 
 // Values
+pub fn combine_reports(Array[EvaluationReport]) -> EvaluationReport raise MotError
+
 pub fn encode_report_json(EvaluationReport) -> String
 
 pub fn encode_tracker_results(Array[MotObject]) -> String

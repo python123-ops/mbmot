@@ -65,6 +65,23 @@ jobs:
         run: |
           moon run --target native src/mot_track examples/mot/detections.txt mot.actual.txt
           diff -u examples/mot/tracked.expected.txt mot.actual.txt
+      - name: Recalculate two MOT sequence fixtures
+        run: |
+          moon run src/mot_batch --target native -- examples/mot/batch/manifest.json > batch.actual.json
+          diff -u examples/mot/batch/expected.json batch.actual.json
+          moon run src/mot_batch --target native -- examples/mot/batch/manifest.json \
+            --baseline examples/mot/batch/expected.json --max-mota-drop 0 --max-idf1-drop 0 \
+            > batch.compared.json
+          grep -F '"regressed":false' batch.compared.json
+          set +e
+          moon run src/mot_batch --target native -- examples/mot/batch/manifest.json \
+            --baseline examples/mot/batch/high-baseline.json --max-mota-drop 0.1 --max-idf1-drop 0.1 \
+            > batch.regressed.json 2> batch.error.txt
+          status=$?
+          set -e
+          test "$status" -ne 0
+          grep -F '"regressed":true' batch.regressed.json
+          grep -F 'regression limit exceeded' batch.error.txt
       - name: Reject an invalid frame after complete output
         run: |
           set +e
