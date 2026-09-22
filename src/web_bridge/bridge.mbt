@@ -116,3 +116,13 @@ pub fn mbmot_close(session_id : Int) -> String {
     error_result("unknown_session", "session does not exist")
   }
 }
+
+///|
+/// Converts one center-box detector frame to the existing replay protocol.
+/// This function is stateless; frame ordering belongs to the replay session.
+pub fn mbmot_convert_yolo_frame(frame_json : String) -> String {
+  let frame = @detection_adapter.parse_yolo_frame(frame_json) catch {
+    error => return error_result("invalid_detection", error.message())
+  }
+  success_result(@detection_adapter.encode_replay_frame(frame))
+}

@@ -34,7 +34,7 @@ body {
 }
 
 a { color: var(--link); }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 button {
   min-height: 40px;
@@ -168,6 +168,12 @@ h3 { margin-bottom: 0.75rem; font-size: 1rem; }
 
 .transport { border-top: 1px solid var(--workbench-border); }
 .rule-toolbar { border-top: 1px solid var(--workbench-border); }
+.rule-toolbar > label { color: var(--workbench-muted); font-size: 0.875rem; }
+#rule-select { min-width: 6rem; min-height: 38px; padding: 0.3rem; border: 1px solid #46545e; border-radius: 6px; background: #202b33; color: var(--workbench-text); font-size: 0.875rem; }
+.point-editor { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; max-height: 9rem; padding: 0.65rem 0.85rem; overflow-y: auto; border-top: 1px solid var(--workbench-border); background: var(--workbench-panel); color: var(--workbench-muted); font-size: 0.875rem; }
+.point-pair { display: flex; align-items: center; gap: 0.45rem; }
+.point-pair label { display: flex; align-items: center; gap: 0.25rem; }
+.point-pair input { width: 5rem; min-height: 34px; padding: 0.25rem; border: 1px solid #46545e; border-radius: 4px; background: #11181e; color: var(--workbench-text); font-size: 0.875rem; }
 
 .transport button, .rule-toolbar button, .inspector button {
   min-height: 38px;
@@ -217,6 +223,7 @@ h3 { margin-bottom: 0.75rem; font-size: 1rem; }
 .metric-list div:nth-child(even) { padding-left: 0.8rem; border-left: 1px solid rgba(70, 84, 94, 0.55); }
 .metric-list dt { color: var(--workbench-muted); font-size: 0.875rem; }
 .metric-list dd { margin: 0; color: var(--cyan); font-weight: 700; font-variant-numeric: tabular-nums; }
+.metric-note { margin: 0.65rem 0 0; color: var(--workbench-muted); font-size: 0.875rem; }
 
 .class-counts { display: grid; max-height: 10rem; overflow-y: auto; }
 .class-count-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; padding: 0.45rem 0; border-bottom: 1px solid rgba(70, 84, 94, 0.55); font-size: 0.875rem; }
@@ -268,6 +275,7 @@ h3 { margin-bottom: 0.75rem; font-size: 1rem; }
 .pipeline span, .pipeline small { color: var(--muted); font-size: 0.82rem; }
 .pipeline strong { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.95rem; }
 .text-link { flex-shrink: 0; font-size: 0.9rem; }
+.benchmark-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
 
 .benchmark-result, .benchmark-empty { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 .benchmark-result[hidden], .benchmark-empty[hidden] { display: none; }
@@ -314,7 +322,7 @@ footer { border-top: 1px solid var(--border); background: var(--surface); }
   #timeline { order: 2; width: calc(100% - 5.5rem); flex-basis: calc(100% - 5.5rem); }
   #frame-label { order: 3; }
   .rule-toolbar { flex-wrap: wrap; }
-  .rule-hint { width: 100%; margin-left: 0; }
+  .point-editor { max-height: 12rem; }
   .pipeline, .integration-layout { grid-template-columns: 1fr; }
   .pipeline li + li, .pipeline li:nth-child(3) { border-left: 0; border-top: 1px solid var(--border); }
   .input-boundaries { padding: 1rem 0 0; border-top: 1px solid var(--border); border-left: 0; }

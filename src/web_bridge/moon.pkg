@@ -2,6 +2,7 @@ import {
   "python123-ops/mbmot",
   "python123-ops/mbmot/replay_codec",
   "python123-ops/mbmot/analytics_codec",
+  "python123-ops/mbmot/detection_adapter",
   "moonbitlang/core/json",
 }
 
@@ -17,6 +18,7 @@ options(
         "mbmot_update",
         "mbmot_reset",
         "mbmot_close",
+        "mbmot_convert_yolo_frame",
       ],
       "format": "esm",
     },

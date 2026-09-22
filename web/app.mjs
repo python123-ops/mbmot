@@ -1,9 +1,11 @@
 import {
   mbmot_close,
+  mbmot_convert_yolo_frame,
   mbmot_create,
   mbmot_reset,
   mbmot_update,
 } from "./mbmot.js";
+import { addRule, buildRunReport, cloneRules, defaultRules, movePoint, removeRule, setupJson, summaryCounts } from "./workbench.mjs";
 
 const FPS = 10;
 const DEFAULT_FRAME_COUNT = 90;
@@ -23,6 +25,10 @@ const statusDot = document.querySelector("#status-dot");
 const statusText = document.querySelector("#engine-status");
 const videoFile = document.querySelector("#video-file");
 const detectionFile = document.querySelector("#detection-file");
+const ruleSelect = document.querySelector("#rule-select");
+const pointEditor = document.querySelector("#point-editor");
+const addRuleButton = document.querySelector("#add-rule");
+const removeRuleButton = document.querySelector("#remove-rule");
 const codeTabs = Array.from(document.querySelectorAll("[data-code-tab]"));
 
 const metrics = {
@@ -44,34 +50,14 @@ let activeMode = "line";
 let uploadedVideoUrl = null;
 let playbackFps = FPS;
 let rules = defaultRules(768, 576);
+let selectedRuleId = 1;
+let dragOrigin = null;
+let dataSource = { name: "默认样例", format: "xyxy", width: 768, height: 576 };
 
 function updatePlaybackFps() {
   if (Number.isFinite(video.duration) && video.duration > 0 && detections.length > 0) {
     playbackFps = detections.length / video.duration;
   }
-}
-
-function defaultRules(width, height) {
-  return {
-    line: [
-      [width * 0.5, height * 0.05],
-      [width * 0.5, height * 0.95],
-    ],
-    region: [
-      [width * 0.1, height * 0.25],
-      [width * 0.9, height * 0.25],
-      [width * 0.9, height * 0.95],
-      [width * 0.1, height * 0.95],
-    ],
-  };
-}
-
-function setupJson() {
-  return JSON.stringify({
-    config: { anchor: "bottom_center", stable_frames: 2 },
-    lines: [{ id: 1, start: rules.line[0], end: rules.line[1] }],
-    regions: [{ id: 1, vertices: rules.region }],
-  });
 }
 
 function parseBridge(text) {
@@ -83,13 +69,90 @@ function parseBridge(text) {
 }
 
 function createSession() {
-  if (sessionId !== null) {
-    mbmot_close(sessionId);
-  }
-  const created = parseBridge(mbmot_create(setupJson()));
+  const created = parseBridge(mbmot_create(setupJson(rules)));
+  if (sessionId !== null) mbmot_close(sessionId);
   sessionId = created.session_id;
   processedFrame = 0;
   results = [];
+}
+
+function currentCollection() {
+  return activeMode === "line" ? rules.lines : rules.regions;
+}
+
+function currentRule() {
+  return currentCollection().find((rule) => rule.id === selectedRuleId) || null;
+}
+
+function currentPoints() {
+  const rule = currentRule();
+  if (!rule) return [];
+  return activeMode === "line" ? [rule.start, rule.end] : rule.vertices;
+}
+
+function syncRuleEditor() {
+  const collection = currentCollection();
+  if (!collection.some((rule) => rule.id === selectedRuleId)) selectedRuleId = collection[0]?.id ?? null;
+  ruleSelect.replaceChildren(...collection.map((rule) => {
+    const option = document.createElement("option");
+    option.value = String(rule.id);
+    option.textContent = `${activeMode === "line" ? "线" : "区域"} ${rule.id}`;
+    return option;
+  }));
+  ruleSelect.disabled = collection.length === 0;
+  removeRuleButton.disabled = collection.length === 0;
+  if (selectedRuleId !== null) ruleSelect.value = String(selectedRuleId);
+  pointEditor.replaceChildren(...currentPoints().map(([x, y], index) => {
+    const group = document.createElement("div");
+    group.className = "point-pair";
+    const title = document.createElement("span");
+    title.textContent = activeMode === "line" ? (index === 0 ? "起点" : "终点") : `顶点 ${index + 1}`;
+    group.append(title);
+    for (const [axis, value, max] of [["X", x, canvas.width], ["Y", y, canvas.height]]) {
+      const label = document.createElement("label");
+      label.textContent = axis;
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "0";
+      input.max = String(max);
+      input.step = "any";
+      input.value = String(Math.round(value * 100) / 100);
+      input.setAttribute("aria-label", `${title.textContent} ${axis}`);
+      input.addEventListener("change", () => {
+        try {
+          const coordinate = Number(input.value);
+          const updated = [x, y];
+          updated[axis === "X" ? 0 : 1] = coordinate;
+          applyRules(movePoint(rules, activeMode, selectedRuleId, index, updated, canvas.width, canvas.height));
+        } catch (error) {
+          setStatus(error.message, "error");
+          syncRuleEditor();
+        }
+      });
+      label.append(input);
+      group.append(label);
+    }
+    return group;
+  }));
+  if (collection.length === 0) pointEditor.textContent = "当前没有规则。可点击“添加”。";
+}
+
+function applyRules(next) {
+  const previous = rules;
+  const target = processedFrame;
+  rules = next;
+  try {
+    createSession();
+    processUntil(target);
+    syncRuleEditor();
+    setStatus("规则已更新，结果已从第一帧重算");
+  } catch (error) {
+    rules = previous;
+    createSession();
+    processUntil(target);
+    syncRuleEditor();
+    throw error;
+  }
 }
 
 function setStatus(text, kind = "ready") {
@@ -107,23 +170,40 @@ function hideMessage() {
 }
 
 function parseNdjson(text) {
-  const rows = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line, index) => {
-      try {
-        return JSON.parse(line);
-      } catch (error) {
-        throw new Error(`检测文件第 ${index + 1} 行不是有效 JSON：${error.message}`);
-      }
-    });
-  rows.forEach((row, index) => {
-    if (row.frame !== index + 1 || !Array.isArray(row.detections)) {
-      throw new Error(`检测文件第 ${index + 1} 行必须对应帧 ${index + 1}`);
+  const rows = [];
+  let format = null;
+  for (const [index, raw] of text.split(/\r?\n/).entries()) {
+    const line = raw.trim();
+    if (!line) continue;
+    let input;
+    try {
+      input = JSON.parse(line);
+    } catch (error) {
+      throw new Error(`检测文件第 ${index + 1} 行不是有效 JSON：${error.message}`);
     }
-  });
-  return rows;
+    if (input === null || typeof input !== "object" || Array.isArray(input)) {
+      throw new Error(`检测文件第 ${index + 1} 行必须是帧对象`);
+    }
+    const lineFormat = Object.hasOwn(input, "coordinates") ? "yolo_cxcywh" : "xyxy";
+    if (format !== null && lineFormat !== format) throw new Error(`检测文件第 ${index + 1} 行与前面使用了不同格式`);
+    format = lineFormat;
+    let row = input;
+    if (format === "yolo_cxcywh") {
+      try {
+        row = parseBridge(mbmot_convert_yolo_frame(line));
+      } catch (error) {
+        throw new Error(`检测文件第 ${index + 1} 行：${error.message}`);
+      }
+      if (input.width !== canvas.width || input.height !== canvas.height) {
+        throw new Error(`检测文件第 ${index + 1} 行的宽高与录像画面不一致`);
+      }
+    }
+    if (row.frame !== rows.length + 1 || !Array.isArray(row.detections)) {
+      throw new Error(`检测文件第 ${index + 1} 行必须对应帧 ${rows.length + 1}`);
+    }
+    rows.push(row);
+  }
+  return { rows, format: format || "xyxy" };
 }
 
 async function loadDefaultData() {
@@ -131,19 +211,19 @@ async function loadDefaultData() {
   if (!response.ok) {
     throw new Error(`无法读取默认检测流（HTTP ${response.status}）`);
   }
-  detections = parseNdjson(await response.text());
+  detections = parseNdjson(await response.text()).rows;
   timeline.max = String(detections.length || DEFAULT_FRAME_COUNT);
 }
 
 function eventText(event, frame) {
   if (event.type === "line_crossed") {
     const direction = event.direction === "left_to_right" ? "从左到右" : "从右到左";
-    return `帧 ${frame} · 轨迹 ${event.track_id} ${direction}越过计数线`;
+    return `帧 ${frame} · 轨迹 ${event.track_id} ${direction}越过线 ${event.line_id}`;
   }
   if (event.type === "region_entered") {
-    return `帧 ${frame} · 轨迹 ${event.track_id} 进入区域${event.initial ? "（初始已在区域内）" : ""}`;
+    return `帧 ${frame} · 轨迹 ${event.track_id} 进入区域 ${event.region_id}${event.initial ? "（初始已在区域内）" : ""}`;
   }
-  return `帧 ${frame} · 轨迹 ${event.track_id} 离开区域，停留 ${event.dwell_frames} 帧`;
+  return `帧 ${frame} · 轨迹 ${event.track_id} 离开区域 ${event.region_id}，停留 ${event.dwell_frames} 帧`;
 }
 
 function renderClassCounts(analytics) {
@@ -190,14 +270,13 @@ function updatePanel(result) {
   }
   const tracking = result.tracking;
   const analytics = result.analytics;
-  const line = analytics.line_counts[0] || {};
-  const region = analytics.region_counts[0] || {};
+  const totals = summaryCounts(analytics);
   metrics.tracks.textContent = String(tracking.tracks.length);
-  metrics.occupancy.textContent = String(region.current_occupancy || 0);
-  metrics.ltr.textContent = String(line.left_to_right || 0);
-  metrics.rtl.textContent = String(line.right_to_left || 0);
-  metrics.entries.textContent = String(region.entries || 0);
-  metrics.unique.textContent = String(region.unique_tracks || 0);
+  metrics.occupancy.textContent = String(totals.occupancy);
+  metrics.ltr.textContent = String(totals.left_to_right);
+  metrics.rtl.textContent = String(totals.right_to_left);
+  metrics.entries.textContent = String(totals.entries);
+  metrics.unique.textContent = String(totals.unique_region_tracks);
   renderClassCounts(analytics);
   const events = results
     .flatMap((entry) => entry.analytics.events.map((event) => ({ frame: entry.tracking.frame, event })))
@@ -238,27 +317,33 @@ function drawRules() {
   context.save();
   context.lineJoin = "round";
   context.lineCap = "round";
-
-  context.beginPath();
-  context.moveTo(...rules.region[0]);
-  rules.region.slice(1).forEach((point) => context.lineTo(...point));
-  context.closePath();
-  context.fillStyle = "rgba(109, 229, 223, 0.12)";
-  context.fill();
-  context.strokeStyle = "#6de5df";
-  context.lineWidth = activeMode === "region" ? 4 : 2;
-  context.stroke();
-
-  context.beginPath();
-  context.moveTo(...rules.line[0]);
-  context.lineTo(...rules.line[1]);
-  context.strokeStyle = "#f4c54f";
-  context.lineWidth = activeMode === "line" ? 5 : 3;
-  context.stroke();
-
-  const handles = activeMode === "line" ? rules.line : rules.region;
+  for (const region of rules.regions) {
+    context.beginPath();
+    context.moveTo(...region.vertices[0]);
+    region.vertices.slice(1).forEach((point) => context.lineTo(...point));
+    context.closePath();
+    context.fillStyle = "rgba(109, 229, 223, 0.08)";
+    context.fill();
+    context.strokeStyle = "#6de5df";
+    context.lineWidth = activeMode === "region" && selectedRuleId === region.id ? 4 : 2;
+    context.stroke();
+    context.fillStyle = "#6de5df";
+    context.font = "14px system-ui";
+    context.fillText(`区域 ${region.id}`, region.vertices[0][0] + 5, region.vertices[0][1] - 7);
+  }
+  for (const line of rules.lines) {
+    context.beginPath();
+    context.moveTo(...line.start);
+    context.lineTo(...line.end);
+    context.strokeStyle = "#f4c54f";
+    context.lineWidth = activeMode === "line" && selectedRuleId === line.id ? 5 : 3;
+    context.stroke();
+    context.fillStyle = "#f4c54f";
+    context.font = "14px system-ui";
+    context.fillText(`线 ${line.id}`, line.start[0] + 5, line.start[1] - 7);
+  }
   context.fillStyle = activeMode === "line" ? "#f4c54f" : "#6de5df";
-  handles.forEach(([x, y]) => {
+  currentPoints().forEach(([x, y]) => {
     context.beginPath();
     context.arc(x, y, 8, 0, Math.PI * 2);
     context.fill();
@@ -304,17 +389,22 @@ function pointerPosition(event) {
 
 canvas.addEventListener("pointerdown", (event) => {
   const point = pointerPosition(event);
-  const handles = activeMode === "line" ? rules.line : rules.region;
-  let nearest = -1;
+  let nearest = null;
   let distance = Number.POSITIVE_INFINITY;
-  handles.forEach(([x, y], index) => {
-    const candidate = Math.hypot(point[0] - x, point[1] - y);
-    if (candidate < distance) {
-      distance = candidate;
-      nearest = index;
-    }
-  });
-  if (distance <= 28) {
+  for (const rule of currentCollection()) {
+    const points = activeMode === "line" ? [rule.start, rule.end] : rule.vertices;
+    points.forEach(([x, y], index) => {
+      const candidate = Math.hypot(point[0] - x, point[1] - y);
+      if (candidate < distance) {
+        distance = candidate;
+        nearest = { id: rule.id, index };
+      }
+    });
+  }
+  if (distance <= 28 && nearest) {
+    selectedRuleId = nearest.id;
+    syncRuleEditor();
+    dragOrigin = cloneRules(rules);
     dragHandle = nearest;
     canvas.setPointerCapture(event.pointerId);
   }
@@ -323,11 +413,10 @@ canvas.addEventListener("pointerdown", (event) => {
 canvas.addEventListener("pointermove", (event) => {
   if (dragHandle === null) return;
   const point = pointerPosition(event);
-  const handles = activeMode === "line" ? rules.line : rules.region;
-  handles[dragHandle] = [
+  rules = movePoint(rules, activeMode, dragHandle.id, dragHandle.index, [
     Math.max(0, Math.min(canvas.width, point[0])),
     Math.max(0, Math.min(canvas.height, point[1])),
-  ];
+  ], canvas.width, canvas.height);
   draw();
 });
 
@@ -335,11 +424,47 @@ canvas.addEventListener("pointerup", async (event) => {
   if (dragHandle === null) return;
   dragHandle = null;
   canvas.releasePointerCapture(event.pointerId);
-  const target = processedFrame;
+  const candidate = rules;
+  rules = dragOrigin;
+  dragOrigin = null;
   try {
-    createSession();
-    processUntil(target);
-    setStatus("规则已更新，结果已从第一帧重算");
+    applyRules(candidate);
+  } catch (error) {
+    setStatus(error.message, "error");
+  }
+});
+
+canvas.addEventListener("pointercancel", () => {
+  if (dragOrigin === null) return;
+  rules = dragOrigin;
+  dragOrigin = null;
+  dragHandle = null;
+  syncRuleEditor();
+  draw();
+});
+
+ruleSelect.addEventListener("change", () => {
+  selectedRuleId = Number(ruleSelect.value);
+  syncRuleEditor();
+  draw();
+});
+
+addRuleButton.addEventListener("click", () => {
+  try {
+    const added = addRule(rules, activeMode, canvas.width, canvas.height);
+    applyRules(added.rules);
+    selectedRuleId = added.id;
+    syncRuleEditor();
+    draw();
+  } catch (error) {
+    setStatus(error.message, "error");
+  }
+});
+
+removeRuleButton.addEventListener("click", () => {
+  try {
+    applyRules(removeRule(rules, activeMode, selectedRuleId));
+    draw();
   } catch (error) {
     setStatus(error.message, "error");
   }
@@ -348,11 +473,13 @@ canvas.addEventListener("pointerup", async (event) => {
 document.querySelectorAll(".mode").forEach((button) => {
   button.addEventListener("click", () => {
     activeMode = button.dataset.mode;
+    selectedRuleId = currentCollection()[0]?.id ?? null;
     document.querySelectorAll(".mode").forEach((item) => {
       const active = item === button;
       item.classList.toggle("active", active);
       item.setAttribute("aria-pressed", String(active));
     });
+    syncRuleEditor();
     draw();
   });
 });
@@ -430,7 +557,12 @@ stepButton.addEventListener("click", () => {
   video.pause();
   const target = Math.min(detections.length, processedFrame + 1);
   video.currentTime = Math.max(0, (target - 1) / playbackFps);
-  processUntil(target);
+  try {
+    processUntil(target);
+  } catch (error) {
+    setStatus(error.message, "error");
+    showMessage(error.message);
+  }
 });
 
 restartButton.addEventListener("click", () => {
@@ -452,24 +584,23 @@ timeline.addEventListener("input", () => {
   }
 });
 
-downloadButton.addEventListener("click", () => {
-  const text = results
-    .map((result) =>
-      JSON.stringify({
-        frame: result.tracking.frame,
-        tracks: result.tracking.tracks,
-        lost: result.tracking.lost,
-        removed: result.tracking.removed,
-        analytics: result.analytics,
-      }),
-    )
-    .join("\n");
-  const url = URL.createObjectURL(new Blob([`${text}\n`], { type: "application/x-ndjson" }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "mbmot-events.ndjson";
-  link.click();
-  URL.revokeObjectURL(url);
+downloadButton.addEventListener("click", async () => {
+  try {
+    const encoded = new TextEncoder().encode(`${detections.map((frame) => JSON.stringify(frame)).join("\n")}\n`);
+    const digest = await crypto.subtle.digest("SHA-256", encoded);
+    const replay_sha256 = [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
+    const report = buildRunReport(detections, results, rules, { ...dataSource, replay_sha256 });
+    const url = URL.createObjectURL(new Blob([`${JSON.stringify(report, null, 2)}\n`], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "mbmot-run-report.json";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    setStatus(`报告生成失败：${error.message}`, "error");
+  }
 });
 
 videoFile.addEventListener("change", async () => {
@@ -482,8 +613,13 @@ videoFile.addEventListener("change", async () => {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   rules = defaultRules(canvas.width, canvas.height);
+  selectedRuleId = 1;
+  detections = [];
+  timeline.max = "0";
+  dataSource = { name: "尚未选择检测流", format: "xyxy", width: canvas.width, height: canvas.height };
   createSession();
   processUntil(0);
+  syncRuleEditor();
   setStatus("已载入本地录像，请继续选择匹配的检测流");
 });
 
@@ -491,7 +627,9 @@ detectionFile.addEventListener("change", async () => {
   const [file] = detectionFile.files;
   if (!file) return;
   try {
-    detections = parseNdjson(await file.text());
+    const parsed = parseNdjson(await file.text());
+    detections = parsed.rows;
+    dataSource = { name: file.name, format: parsed.format, width: canvas.width, height: canvas.height };
     updatePlaybackFps();
     timeline.max = String(detections.length);
     createSession();
@@ -537,8 +675,11 @@ async function start() {
     canvas.height = video.videoHeight || 576;
     updatePlaybackFps();
     rules = defaultRules(canvas.width, canvas.height);
+    selectedRuleId = 1;
+    dataSource = { name: "默认样例", format: "xyxy", width: canvas.width, height: canvas.height };
     createSession();
     processUntil(0);
+    syncRuleEditor();
     hideMessage();
     setStatus("MoonBit 引擎已就绪");
     await loadBenchmark();

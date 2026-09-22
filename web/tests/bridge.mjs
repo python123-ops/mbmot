@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
+import { readFileSync } from "node:fs";
 
 const modulePath = resolve(process.argv[2] || "_build/site/mbmot.js");
 const bridge = await import(pathToFileURL(modulePath));
@@ -17,6 +18,24 @@ const frame = JSON.stringify({
   frame: 1,
   detections: [{ xyxy: [1, 1, 3, 5], score: 0.9, class_id: 0 }],
 });
+const converted = JSON.parse(bridge.mbmot_convert_yolo_frame(JSON.stringify({
+  frame: 1,
+  width: 10,
+  height: 10,
+  coordinates: "normalized",
+  detections: [{ cxcywh: [0.2, 0.3, 0.2, 0.4], score: 0.9, class_id: 0 }],
+})));
+assert.equal(converted.ok, true);
+assert.deepEqual(converted.result.detections[0].xyxy, [1, 1, 3, 5]);
+assert.equal(bridge.mbmot_convert_yolo_frame(JSON.stringify({
+  frame: 1, width: 10, height: 10, coordinates: "normalized",
+  detections: [{ cxcywh: [1, 1, 1, 1], score: 0.9, class_id: 0 }],
+})).includes('"code":"invalid_detection"'), true);
+const uploadedFixture = readFileSync("examples/yolo-web.ndjson", "utf8").trim();
+const defaultFirst = JSON.parse(readFileSync("web/assets/detections.ndjson", "utf8").split(/\r?\n/)[0]);
+const importedFirst = JSON.parse(bridge.mbmot_convert_yolo_frame(uploadedFixture));
+assert.equal(importedFirst.ok, true);
+assert.deepEqual(importedFirst.result, defaultFirst);
 const output = JSON.parse(bridge.mbmot_update(id, frame));
 assert.equal(output.ok, true);
 assert.equal(output.result.tracking.tracks[0].track_id, 1);

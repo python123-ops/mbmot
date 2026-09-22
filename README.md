@@ -197,6 +197,8 @@ py -3 -m venv .venv-video-demo
 
 [播放 MBMOT 空间分析录像](examples/video/mbmot-spatial-demo.mp4)。原始画面来源和样例口径记录在 [`examples/video/README.md`](examples/video/README.md)。
 
+[在线工作台](https://python123-ops.github.io/mbmot/) 使用浏览器内的 MoonBit 跟踪与空间分析。它可读取现有 `xyxy` 检测流，也可把逐帧 YOLO 中心框交给 MoonBit 桥接转换；多条计数线和区域可在画面中拖动或通过坐标输入编辑，每次改动都从首帧重算。下载的 JSON 报告包含转换后检测流的 SHA-256、规则、已处理帧的轨迹与事件，以及当前帧各规则统计。重叠区域按规则分别计数，不会合并为全画面的去重人数。检测转换的浏览器桥接接口与多规则工作台尚未随 mooncakes.io 的 `0.2.0` 发布。
+
 ## NDJSON 重放
 
 原生重放命令从标准输入逐行读取：

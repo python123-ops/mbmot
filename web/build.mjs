@@ -25,7 +25,7 @@ if (!output.startsWith(`${resolvedBuildRoot}\\`) && !output.startsWith(`${resolv
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
 
-for (const name of ["index.html", "styles.css", "app.mjs", "favicon.svg"]) {
+for (const name of ["index.html", "styles.css", "app.mjs", "workbench.mjs", "favicon.svg"]) {
   cpSync(join(webRoot, name), join(output, name));
 }
 cpSync(join(webRoot, "assets"), join(output, "assets"), { recursive: true });
