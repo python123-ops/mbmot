@@ -1,4 +1,6 @@
 /_build/
+/examples/consumer/_build/
+/examples/consumer/.mooncakes/
 /.mooncakes/
 /.venv-video-demo/
 /.video-demo-work/

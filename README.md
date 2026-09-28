@@ -6,6 +6,14 @@ MBMOT 是一个用 MoonBit 编写的在线多目标跟踪库。它不读取图�
 
 跟踪器采用八维 `xyah + velocity` 运动状态。高分检测先与活动、暂定和仍在保留期内的 lost 轨迹关联，未匹配的活动轨迹再尝试低分检测。低分框能维持正在活动的身份，但不会新建编号或恢复已经 lost 的轨迹。
 
+想从输入直接看到统计，可以在检出仓库后运行：
+
+```bash
+moon run src/observe --target native -- examples/observe.rules.json < examples/observe.yolo.ndjson
+```
+
+这七帧从 YOLO 风格中心框开始，输出逐帧的轨迹和空间事件；第 3 帧确认越线，第 4 帧丢失，第 5 帧恢复同一编号，第 7 帧确认离开区域。[完整输出](examples/observe.expected.ndjson)可逐行比较。若要确认发布包能在另一模块中使用，运行 `moon -C examples/consumer test --target all --deny-warn`；这个小模块固定安装 mooncakes.io 上的 `0.3.0`，调用检测框转换、跟踪、区域统计和 MOT 评测接口。
+
 ## 安装与源码运行
 
 在 MoonBit 模块中加入 `0.3.0`：

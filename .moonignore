@@ -8,6 +8,7 @@
 /tools/
 /benchmarks/
 /examples/video/
+/examples/consumer/
 *.mp4
 *.png
 *.mbmot-artifacts/

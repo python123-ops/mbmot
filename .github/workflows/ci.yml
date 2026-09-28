@@ -36,6 +36,10 @@ jobs:
         run: python3 tools/video_demo/test_pipeline.py
       - name: Generate interfaces
         run: moon info --target all
+      - name: Install published 0.3.0 in a separate module
+        run: |
+          moon -C examples/consumer update
+          moon -C examples/consumer test --target all --deny-warn
       - name: Replay the checked-in stream
         run: |
           moon run src/replay --target native < examples/replay.ndjson > replay.actual.ndjson
