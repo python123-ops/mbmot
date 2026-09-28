@@ -8,13 +8,13 @@ MBMOT 是一个用 MoonBit 编写的在线多目标跟踪库。它不读取图�
 
 ## 安装与源码运行
 
-在 MoonBit 模块中加入 `0.2.0`：
+在 MoonBit 模块中加入 `0.3.0`：
 
 ```bash
-moon add python123-ops/mbmot@0.2.0
+moon add python123-ops/mbmot@0.3.0
 ```
 
-这个版本包含跟踪、空间事件、NDJSON 编解码、MOT 文件读写与评测，以及网站使用的 JavaScript 桥接源码。
+这个版本包含跟踪、空间事件、检测框转换、NDJSON 编解码、MOT 文件读写与评测，以及网站使用的 JavaScript 桥接源码。原生命令也随源码包提供。
 
 需要安装 MoonBit 工具链。检出仓库后可以运行四个稳定后端的检查和测试：
 
@@ -44,7 +44,7 @@ moon run src/yolo_import --target native < examples/yolo.ndjson
 moon run src/yolo_import --target native -- --classes '[2]' < examples/yolo.ndjson
 ```
 
-这个源码接口尚未随 `0.2.0` 发布。归一化框必须完整位于 `[0,1]`；像素框可以伸出图像，但仍须具有有限坐标和正面积。类别筛选只决定哪些合法检测进入输出，不会掩盖被排除类别中的格式错误。错误带物理输入行号并以非零状态退出，此前已输出的完整行仍可使用。
+归一化框必须完整位于 `[0,1]`；像素框可以伸出图像，但仍须具有有限坐标和正面积。类别筛选只决定哪些合法检测进入输出，不会掩盖被排除类别中的格式错误。错误带物理输入行号并以非零状态退出，此前已输出的完整行仍可使用。
 
 若要直接查看检测框对应的身份与空间结果，可以把规则写成与 `analytics_replay` 相同的配置对象，再用一个原生命令重放中心框流：
 
@@ -52,7 +52,7 @@ moon run src/yolo_import --target native -- --classes '[2]' < examples/yolo.ndjs
 moon run src/observe --target native -- examples/observe.rules.json < examples/observe.yolo.ndjson
 ```
 
-每一行输出包含 `tracking` 和 `analytics` 两个对象，可分别读取轨迹、`lost` / `removed`、越线事件与区域统计。这个七帧样例混用归一化和像素输入：第 3 帧确认越线，第 4 帧进入 lost，第 5 帧恢复原编号，第 7 帧确认离开区域，累计完成停留为 6 帧。逐行结果保存在 [`examples/observe.expected.ndjson`](examples/observe.expected.ndjson)。需要只看某些类别时，在规则文件名后加 `--classes '[0,2]'`；文件中的检测仍会全部经过格式校验。错误行不会输出半成品，本次命令已写出的完整帧保留。该组合命令仅存在于当前仓库源码，不属于已发布的 `0.2.0`。
+每一行输出包含 `tracking` 和 `analytics` 两个对象，可分别读取轨迹、`lost` / `removed`、越线事件与区域统计。这个七帧样例混用归一化和像素输入：第 3 帧确认越线，第 4 帧进入 lost，第 5 帧恢复原编号，第 7 帧确认离开区域，累计完成停留为 6 帧。逐行结果保存在 [`examples/observe.expected.ndjson`](examples/observe.expected.ndjson)。需要只看某些类别时，在规则文件名后加 `--classes '[0,2]'`；文件中的检测仍会全部经过格式校验。错误行不会输出半成品，本次命令已写出的完整帧保留。
 
 已有 `xyxy` 检测流无需先改写成中心框；同一规则也能直接运行：
 
@@ -213,7 +213,7 @@ py -3 -m venv .venv-video-demo
 
 [播放 MBMOT 空间分析录像](examples/video/mbmot-spatial-demo.mp4)。原始画面来源和样例口径记录在 [`examples/video/README.md`](examples/video/README.md)。
 
-[在线工作台](https://python123-ops.github.io/mbmot/) 使用浏览器内的 MoonBit 跟踪与空间分析。它可读取现有 `xyxy` 检测流，也可把逐帧 YOLO 中心框交给 MoonBit 桥接转换；多条计数线和区域可在画面中拖动或通过坐标输入编辑，每次改动都从首帧重算。下载的 JSON 报告包含转换后检测流的 SHA-256、规则、已处理帧的轨迹与事件，以及当前帧各规则统计。重叠区域按规则分别计数，不会合并为全画面的去重人数。检测转换的浏览器桥接接口与多规则工作台尚未随 mooncakes.io 的 `0.2.0` 发布。
+[在线工作台](https://python123-ops.github.io/mbmot/) 使用浏览器内的 MoonBit 跟踪与空间分析。它可读取现有 `xyxy` 检测流，也可把逐帧 YOLO 中心框交给 MoonBit 桥接转换；多条计数线和区域可在画面中拖动或通过坐标输入编辑，每次改动都从首帧重算。下载的 JSON 报告包含转换后检测流的 SHA-256、规则、已处理帧的轨迹与事件，以及当前帧各规则统计。重叠区域按规则分别计数，不会合并为全画面的去重人数。浏览器桥接源码包含在模块中；页面静态资源单独由 GitHub Pages 部署。
 
 ## NDJSON 重放
 
@@ -278,7 +278,7 @@ moon run src/mot_track --target native --release \
 moon run src/mot_batch --target native -- examples/mot/batch/manifest.json
 ```
 
-[`examples/mot/batch/expected.json`](examples/mot/batch/expected.json) 是两条小序列的逐字输出。还可用 `--baseline <先前报告.json> --max-mota-drop 0.02 --max-idf1-drop 0.02` 比较同名、同顺序、同 IoU 门限的报告；总体或任一序列的下降超过门槛时，命令仍输出带差值的报告，然后以非零状态退出。门槛以 0 到 1 的指标尺度表示，`0.02` 是两个百分点。本地 MOT17-02-FRCNN 与 MOT17-09-FRCNN 的运行输入和结果见 [`benchmarks/MOT17-two-sequences.md`](benchmarks/MOT17-two-sequences.md)。批量命令与此前新增的检测适配、空间计数接口都还没有纳入 mooncakes.io 的 `0.2.0`。
+[`examples/mot/batch/expected.json`](examples/mot/batch/expected.json) 是两条小序列的逐字输出。还可用 `--baseline <先前报告.json> --max-mota-drop 0.02 --max-idf1-drop 0.02` 比较同名、同顺序、同 IoU 门限的报告；总体或任一序列的下降超过门槛时，命令仍输出带差值的报告，然后以非零状态退出。门槛以 0 到 1 的指标尺度表示，`0.02` 是两个百分点。本地 MOT17-02-FRCNN 与 MOT17-09-FRCNN 的运行输入和结果见 [`benchmarks/MOT17-two-sequences.md`](benchmarks/MOT17-two-sequences.md)。真实 MOT 数据不随模块发布，复算时需按基准记录单独准备。
 
 ## License
 
