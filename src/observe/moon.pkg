@@ -1,0 +1,16 @@
+import {
+  "python123-ops/mbmot/analytics_codec",
+  "python123-ops/mbmot/detection_adapter",
+  "python123-ops/mbmot/replay_codec",
+  "python123-ops/mbmot",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+  "moonbitlang/async/stdio",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+}
+
+supported_targets = "+native"
+
+pkgtype(kind: "executable")

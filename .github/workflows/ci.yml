@@ -54,6 +54,10 @@ jobs:
           test "$status" -ne 0
           test "$(wc -l < yolo.partial.ndjson)" -eq 1
           grep -F 'line 2: invalid frame' yolo.error.txt
+      - name: Replay detector boxes through tracking and spatial rules
+        env:
+          MBMOT_MOON: moon
+        run: node tools/observe_test.mjs
       - name: Check spatial event example
         run: |
           moon run src/analytics_demo --target native > analytics.actual.txt

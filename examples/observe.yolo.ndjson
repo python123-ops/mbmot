@@ -1,0 +1,7 @@
+{"frame":1,"width":20,"height":10,"coordinates":"normalized","detections":[{"cxcywh":[0.2,0.4,0.2,0.4],"score":0.95,"class_id":0}]}
+{"frame":2,"width":20,"height":10,"coordinates":"pixels","detections":[{"cxcywh":[5,4,4,4],"score":0.95,"class_id":0}]}
+{"frame":3,"width":20,"height":10,"coordinates":"pixels","detections":[{"cxcywh":[6,4,4,4],"score":0.95,"class_id":0}]}
+{"frame":4,"width":20,"height":10,"coordinates":"pixels","detections":[]}
+{"frame":5,"width":20,"height":10,"coordinates":"pixels","detections":[{"cxcywh":[7,4,4,4],"score":0.95,"class_id":0}]}
+{"frame":6,"width":20,"height":10,"coordinates":"pixels","detections":[{"cxcywh":[8,4,4,4],"score":0.95,"class_id":0}]}
+{"frame":7,"width":20,"height":10,"coordinates":"pixels","detections":[{"cxcywh":[10,4,4,4],"score":0.95,"class_id":0}]}

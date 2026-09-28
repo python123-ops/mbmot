@@ -1,0 +1,7 @@
+{"frame":1,"detections":[{"xyxy":[2,2,6,6],"score":0.95,"class_id":0}]}
+{"frame":2,"detections":[{"xyxy":[3,2,7,6],"score":0.95,"class_id":0}]}
+{"frame":3,"detections":[{"xyxy":[4,2,8,6],"score":0.95,"class_id":0}]}
+{"frame":4,"detections":[]}
+{"frame":5,"detections":[{"xyxy":[5,2,9,6],"score":0.95,"class_id":0}]}
+{"frame":6,"detections":[{"xyxy":[6,2,10,6],"score":0.95,"class_id":0}]}
+{"frame":7,"detections":[{"xyxy":[8,2,12,6],"score":0.95,"class_id":0}]}

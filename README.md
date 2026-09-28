@@ -46,7 +46,23 @@ moon run src/yolo_import --target native -- --classes '[2]' < examples/yolo.ndjs
 
 这个源码接口尚未随 `0.2.0` 发布。归一化框必须完整位于 `[0,1]`；像素框可以伸出图像，但仍须具有有限坐标和正面积。类别筛选只决定哪些合法检测进入输出，不会掩盖被排除类别中的格式错误。错误带物理输入行号并以非零状态退出，此前已输出的完整行仍可使用。
 
-`BoundingBox::from_xywh` 接受左上角加宽高，`BoundingBox::from_cxcywh` 接受中心点加宽高，后者可直接承接 YOLO 常见的坐标顺序。两种构造都保留输入尺度：像素坐标和归一化坐标可以使用，但同一条流必须保持一致，库不会读取图像尺寸替调用方缩放。
+若要直接查看检测框对应的身份与空间结果，可以把规则写成与 `analytics_replay` 相同的配置对象，再用一个原生命令重放中心框流：
+
+```bash
+moon run src/observe --target native -- examples/observe.rules.json < examples/observe.yolo.ndjson
+```
+
+每一行输出包含 `tracking` 和 `analytics` 两个对象，可分别读取轨迹、`lost` / `removed`、越线事件与区域统计。这个七帧样例混用归一化和像素输入：第 3 帧确认越线，第 4 帧进入 lost，第 5 帧恢复原编号，第 7 帧确认离开区域，累计完成停留为 6 帧。逐行结果保存在 [`examples/observe.expected.ndjson`](examples/observe.expected.ndjson)。需要只看某些类别时，在规则文件名后加 `--classes '[0,2]'`；文件中的检测仍会全部经过格式校验。错误行不会输出半成品，本次命令已写出的完整帧保留。该组合命令仅存在于当前仓库源码，不属于已发布的 `0.2.0`。
+
+已有 `xyxy` 检测流无需先改写成中心框；同一规则也能直接运行：
+
+```bash
+moon run src/observe --target native -- examples/observe.rules.json --input xyxy < examples/observe.xyxy.ndjson
+```
+
+两个输入样例的逐帧输出完全相同。`--classes` 只用于中心框输入；对于 `xyxy` 流，可在送入命令前由调用方筛选检测框。
+
+`BoundingBox::from_xywh` 接受左上角加宽高，`BoundingBox::from_cxcywh` 接受中心点加宽高，后者可直接承接 YOLO 常见的坐标顺序。两种构造都保留输入尺度；直接向跟踪器传框时，同一条流必须保持一致的坐标尺度。上面的 `observe` 命令则会先按每帧尺寸把归一化中心框转换为像素框。
 
 ## 逐帧契约
 
