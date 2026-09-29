@@ -2,5 +2,4 @@ import {
   "python123-ops/mbmot",
   "python123-ops/mbmot/analytics",
   "moonbitlang/core/json",
-  "moonbitlang/core/string",
 }

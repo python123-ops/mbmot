@@ -17,13 +17,19 @@ pub(all) suberror ReplayError {
   InvalidFrame(String)
   InvalidDetection(index~ : Int, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn ReplayError::equal(Self, Self) -> Bool
 pub fn ReplayError::message(Self) -> String
+pub fn ReplayError::not_equal(Self, Self) -> Bool
+pub fn ReplayError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror ReplayLineError {
   ReplayLineError(line~ : Int, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn ReplayLineError::equal(Self, Self) -> Bool
 pub fn ReplayLineError::line(Self) -> Int
 pub fn ReplayLineError::message(Self) -> String
+pub fn ReplayLineError::not_equal(Self, Self) -> Bool
+pub fn ReplayLineError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub struct ReplayFrame {

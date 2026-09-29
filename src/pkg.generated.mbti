@@ -17,6 +17,7 @@ pub(all) suberror TrackerError {
   InvalidDetection(index~ : Int)
 } derive(@debug.Debug)
 pub fn TrackerError::message(Self) -> String
+pub fn TrackerError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub struct BoundingBox {
@@ -25,10 +26,13 @@ pub struct BoundingBox {
   x2 : Double
   y2 : Double
 } derive(Eq, @debug.Debug)
+pub fn BoundingBox::equal(Self, Self) -> Bool
 pub fn BoundingBox::from_cxcywh(Double, Double, Double, Double) -> Self raise TrackerError
 pub fn BoundingBox::from_xywh(Double, Double, Double, Double) -> Self raise TrackerError
 pub fn BoundingBox::new(Double, Double, Double, Double) -> Self raise TrackerError
+pub fn BoundingBox::not_equal(Self, Self) -> Bool
 pub fn BoundingBox::to_cxcywh(Self) -> (Double, Double, Double, Double)
+pub fn BoundingBox::to_repr(Self) -> @debug.Repr
 pub fn BoundingBox::to_xywh(Self) -> (Double, Double, Double, Double)
 pub fn BoundingBox::x1(Self) -> Double
 pub fn BoundingBox::x2(Self) -> Double
@@ -42,12 +46,18 @@ pub struct Detection {
 } derive(Eq, @debug.Debug)
 pub fn Detection::bbox(Self) -> BoundingBox
 pub fn Detection::class_id(Self) -> Int
+pub fn Detection::equal(Self, Self) -> Bool
 pub fn Detection::new(BoundingBox, Double, Int) -> Self raise TrackerError
+pub fn Detection::not_equal(Self, Self) -> Bool
 pub fn Detection::score(Self) -> Double
+pub fn Detection::to_repr(Self) -> @debug.Repr
 
 type FrameTracks derive(Eq, @debug.Debug)
+pub fn FrameTracks::equal(Self, Self) -> Bool
 pub fn FrameTracks::lost(Self) -> Array[Int]
+pub fn FrameTracks::not_equal(Self, Self) -> Bool
 pub fn FrameTracks::removed(Self) -> Array[Int]
+pub fn FrameTracks::to_repr(Self) -> @debug.Repr
 pub fn FrameTracks::tracks(Self) -> Array[Track]
 
 pub struct Track {
@@ -61,10 +71,13 @@ pub struct Track {
 } derive(Eq, @debug.Debug)
 pub fn Track::bbox(Self) -> BoundingBox
 pub fn Track::class_id(Self) -> Int
+pub fn Track::equal(Self, Self) -> Bool
 pub fn Track::first_frame(Self) -> Int
 pub fn Track::hits(Self) -> Int
 pub fn Track::last_frame(Self) -> Int
+pub fn Track::not_equal(Self, Self) -> Bool
 pub fn Track::score(Self) -> Double
+pub fn Track::to_repr(Self) -> @debug.Repr
 pub fn Track::track_id(Self) -> Int
 
 type Tracker
@@ -84,6 +97,7 @@ pub struct TrackerConfig {
   fuse_score : Bool
 } derive(Eq, @debug.Debug)
 pub fn TrackerConfig::default() -> Self
+pub fn TrackerConfig::equal(Self, Self) -> Bool
 pub fn TrackerConfig::first_match_max_cost(Self) -> Double
 pub fn TrackerConfig::fuse_score(Self) -> Bool
 pub fn TrackerConfig::high_score_threshold(Self) -> Double
@@ -92,7 +106,9 @@ pub fn TrackerConfig::max_lost_frames(Self) -> Int
 pub fn TrackerConfig::min_hits(Self) -> Int
 pub fn TrackerConfig::new(high_score_threshold~ : Double, low_score_threshold~ : Double, new_track_threshold~ : Double, first_match_max_cost~ : Double, second_match_max_cost~ : Double, max_lost_frames~ : Int, min_hits~ : Int, fuse_score~ : Bool) -> Self raise TrackerError
 pub fn TrackerConfig::new_track_threshold(Self) -> Double
+pub fn TrackerConfig::not_equal(Self, Self) -> Bool
 pub fn TrackerConfig::second_match_max_cost(Self) -> Double
+pub fn TrackerConfig::to_repr(Self) -> @debug.Repr
 
 type TrackerStatus
 pub fn TrackerStatus::active_count(Self) -> Int

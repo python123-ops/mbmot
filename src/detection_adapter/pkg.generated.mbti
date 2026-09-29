@@ -19,7 +19,10 @@ pub(all) suberror AdapterError {
   InvalidClassFilter(String)
   NonIncreasingFrame(previous~ : Int, received~ : Int)
 } derive(Eq, @debug.Debug)
+pub fn AdapterError::equal(Self, Self) -> Bool
 pub fn AdapterError::message(Self) -> String
+pub fn AdapterError::not_equal(Self, Self) -> Bool
+pub fn AdapterError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub struct YoloFrame {

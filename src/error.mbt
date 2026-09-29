@@ -10,6 +10,9 @@ pub(all) suberror TrackerError {
 } derive(Debug)
 
 ///|
+pub extend TrackerError with Debug::{to_repr}
+
+///|
 /// Returns a stable human-readable description of an input error.
 pub fn TrackerError::message(self : TrackerError) -> String {
   match self {

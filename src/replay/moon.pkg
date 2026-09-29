@@ -2,7 +2,6 @@ import {
   "python123-ops/mbmot",
   "python123-ops/mbmot/replay_codec",
   "moonbitlang/async",
-  "moonbitlang/async/io",
   "moonbitlang/async/stdio",
 }
 

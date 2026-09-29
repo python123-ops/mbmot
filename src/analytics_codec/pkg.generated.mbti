@@ -16,13 +16,19 @@ pub(all) suberror AnalyticsReplayError {
   InvalidRule(kind~ : String, index~ : Int, reason~ : String)
   InvalidTrack(index~ : Int, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn AnalyticsReplayError::equal(Self, Self) -> Bool
 pub fn AnalyticsReplayError::message(Self) -> String
+pub fn AnalyticsReplayError::not_equal(Self, Self) -> Bool
+pub fn AnalyticsReplayError::to_repr(Self) -> @debug.Repr
 
 pub(all) suberror AnalyticsReplayLineError {
   AnalyticsReplayLineError(line~ : Int, reason~ : String)
 } derive(Eq, @debug.Debug)
+pub fn AnalyticsReplayLineError::equal(Self, Self) -> Bool
 pub fn AnalyticsReplayLineError::line(Self) -> Int
 pub fn AnalyticsReplayLineError::message(Self) -> String
+pub fn AnalyticsReplayLineError::not_equal(Self, Self) -> Bool
+pub fn AnalyticsReplayLineError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub struct AnalyticsReplaySession {

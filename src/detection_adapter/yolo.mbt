@@ -24,6 +24,12 @@ pub(all) suberror AdapterError {
 } derive(Debug, Eq)
 
 ///|
+pub extend AdapterError with Debug::{to_repr}
+
+///|
+pub extend AdapterError with Eq::{equal, not_equal}
+
+///|
 pub fn AdapterError::message(self : AdapterError) -> String {
   match self {
     InvalidJson(reason) => "invalid JSON: " + reason

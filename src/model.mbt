@@ -7,6 +7,12 @@ pub struct Detection {
 } derive(Debug, Eq)
 
 ///|
+pub extend Detection with Debug::{to_repr}
+
+///|
+pub extend Detection with Eq::{equal, not_equal}
+
+///|
 fn Detection::valid(self : Detection) -> Bool {
   self.bbox.valid() &&
   is_finite(self.score) &&
@@ -64,6 +70,12 @@ pub struct TrackerConfig {
   min_hits : Int
   fuse_score : Bool
 } derive(Debug, Eq)
+
+///|
+pub extend TrackerConfig with Debug::{to_repr}
+
+///|
+pub extend TrackerConfig with Eq::{equal, not_equal}
 
 ///|
 fn valid_unit_interval(value : Double) -> Bool {
@@ -190,6 +202,12 @@ pub struct Track {
 } derive(Debug, Eq)
 
 ///|
+pub extend Track with Debug::{to_repr}
+
+///|
+pub extend Track with Eq::{equal, not_equal}
+
+///|
 /// Returns the stable identity assigned by this tracker instance.
 pub fn Track::track_id(self : Track) -> Int {
   self.track_id
@@ -238,6 +256,12 @@ struct FrameTracks {
   lost : Array[Int]
   removed : Array[Int]
 } derive(Debug, Eq)
+
+///|
+pub extend FrameTracks with Debug::{to_repr}
+
+///|
+pub extend FrameTracks with Eq::{equal, not_equal}
 
 ///|
 /// Returns visible tracks sorted by `track_id`.

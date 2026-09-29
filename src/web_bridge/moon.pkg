@@ -3,8 +3,11 @@ import {
   "python123-ops/mbmot/replay_codec",
   "python123-ops/mbmot/analytics_codec",
   "python123-ops/mbmot/detection_adapter",
-  "moonbitlang/core/json",
 }
+
+import {
+  "moonbitlang/core/json",
+} for "test"
 
 supported_targets = "js"
 

@@ -14,7 +14,7 @@ let next_session_id : Ref[Int] = Ref(1)
 ///|
 priv suberror BridgeFailure {
   BridgeFailure(String)
-} derive(Debug)
+}
 
 ///|
 fn BridgeFailure::message(self : BridgeFailure) -> String {

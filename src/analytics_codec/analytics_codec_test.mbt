@@ -18,7 +18,7 @@ fn frame_line(
 
 ///|
 test "setup line creates rules without emitting a frame" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   assert_eq(session.process_line("   "), None)
   assert_eq(session.process_line(setup_line()), None)
   assert_eq(session.lines_read(), 2)
@@ -29,7 +29,7 @@ test "setup line creates rules without emitting a frame" {
 
 ///|
 test "setup class filters separate line and region traffic" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   ignore(
     session.process_line(
       "{\"config\":{\"anchor\":\"bottom_center\",\"stable_frames\":1},\"lines\":[{\"id\":4,\"start\":[5,0],\"end\":[5,10],\"class_ids\":[1]}],\"regions\":[{\"id\":7,\"vertices\":[[0,0],[10,0],[10,10],[0,10]],\"class_ids\":[0]}]}",
@@ -54,7 +54,7 @@ test "setup class filters separate line and region traffic" {
 
 ///|
 test "invalid class filters retain rule index in setup errors" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   try
     session.process_line(
       "{\"config\":{\"anchor\":\"center\",\"stable_frames\":1},\"lines\":[{\"id\":4,\"start\":[0,0],\"end\":[1,0],\"class_ids\":[]}],\"regions\":[]}",
@@ -72,7 +72,7 @@ test "invalid class filters retain rule index in setup errors" {
 
 ///|
 test "frame output exposes deterministic region entry and occupancy" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   ignore(session.process_line(setup_line()))
   ignore(session.process_line(frame_line(1, -2.0)))
   let output = session.process_line(frame_line(2, 2.0))
@@ -86,7 +86,7 @@ test "frame output exposes deterministic region entry and occupancy" {
 
 ///|
 test "line crossings and region exits retain direction and dwell" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   ignore(session.process_line(setup_line()))
   ignore(session.process_line(frame_line(1, -2.0)))
   ignore(session.process_line(frame_line(2, 2.0)))
@@ -108,7 +108,7 @@ test "line crossings and region exits retain direction and dwell" {
 
 ///|
 test "region transfer is encoded after confirmed exit and entry" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   ignore(
     session.process_line(
       "{\"config\":{\"anchor\":\"bottom_center\",\"stable_frames\":1},\"lines\":[],\"regions\":[{\"id\":1,\"vertices\":[[0,0],[10,0],[10,10],[0,10]]},{\"id\":2,\"vertices\":[[20,0],[30,0],[30,10],[20,10]]}]}",
@@ -127,7 +127,7 @@ test "region transfer is encoded after confirmed exit and entry" {
 
 ///|
 test "lost frames remove occupancy without duplicating an entry after recovery" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   ignore(session.process_line(setup_line()))
   ignore(session.process_line(frame_line(1, 2.0)))
   let lost = session.process_line(
@@ -143,13 +143,13 @@ test "lost frames remove occupancy without duplicating an entry after recovery" 
 
 ///|
 test "center and bottom-center anchors can classify the same box differently" {
-  let bottom = AnalyticsReplaySession::new()
+  let bottom = @analytics_codec.AnalyticsReplaySession::new()
   ignore(bottom.process_line(setup_line(anchor="bottom_center")))
   let bottom_output = bottom.process_line(
     "{\"frame\":1,\"tracks\":[{\"track_id\":1,\"xyxy\":[1,-4,3,2],\"class_id\":0}],\"lost\":[],\"removed\":[]}",
   )
   assert_true(bottom_output is Some(text) && text.contains("\"entries\":1"))
-  let center = AnalyticsReplaySession::new()
+  let center = @analytics_codec.AnalyticsReplaySession::new()
   ignore(center.process_line(setup_line(anchor="center")))
   let center_output = center.process_line(
     "{\"frame\":1,\"tracks\":[{\"track_id\":1,\"xyxy\":[1,-4,3,2],\"class_id\":0}],\"lost\":[],\"removed\":[]}",
@@ -159,7 +159,7 @@ test "center and bottom-center anchors can classify the same box differently" {
 
 ///|
 test "invalid setup reports its physical line and can be retried" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   try session.process_line(setup_line(anchor="corner")) catch {
     error =>
       assert_eq(
@@ -175,7 +175,7 @@ test "invalid setup reports its physical line and can be retried" {
 
 ///|
 test "invalid rule geometry includes rule kind and index" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   try
     session.process_line(
       "{\"config\":{\"anchor\":\"center\",\"stable_frames\":1},\"lines\":[{\"id\":4,\"start\":[1,1],\"end\":[1,1]}],\"regions\":[]}",
@@ -193,7 +193,7 @@ test "invalid rule geometry includes rule kind and index" {
 
 ///|
 test "invalid track does not advance analyzer state" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   ignore(session.process_line(setup_line()))
   try
     session.process_line(
@@ -213,7 +213,7 @@ test "invalid track does not advance analyzer state" {
 
 ///|
 test "analytics validation errors keep their input line" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   ignore(session.process_line(setup_line()))
   ignore(session.process_line(frame_line(3, -2.0)))
   try session.process_line(frame_line(2, -1.0)) catch {
@@ -229,7 +229,7 @@ test "analytics validation errors keep their input line" {
 
 ///|
 test "malformed JSON is rejected before setup state changes" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   try session.process_line("{\"config\":") catch {
     error => assert_true(error.message().has_prefix("line 1: invalid JSON:"))
   } noraise {
@@ -240,7 +240,7 @@ test "malformed JSON is rejected before setup state changes" {
 
 ///|
 test "a frame cannot be consumed before the rule setup" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   try session.process_line(frame_line(1, 2.0)) catch {
     error => {
       assert_eq(error.line(), 1)
@@ -253,7 +253,7 @@ test "a frame cannot be consumed before the rule setup" {
 
 ///|
 test "duplicate rule identifiers are rejected during setup" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   try
     session.process_line(
       "{\"config\":{\"anchor\":\"center\",\"stable_frames\":1},\"lines\":[{\"id\":4,\"start\":[0,0],\"end\":[1,0]},{\"id\":4,\"start\":[0,1],\"end\":[1,1]}],\"regions\":[]}",
@@ -268,7 +268,7 @@ test "duplicate rule identifiers are rejected during setup" {
 
 ///|
 test "visible and lost identity conflicts do not partially update a frame" {
-  let session = AnalyticsReplaySession::new()
+  let session = @analytics_codec.AnalyticsReplaySession::new()
   ignore(session.process_line(setup_line()))
   ignore(session.process_line(frame_line(1, 2.0)))
   try

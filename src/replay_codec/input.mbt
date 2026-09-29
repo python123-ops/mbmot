@@ -19,6 +19,12 @@ pub(all) suberror ReplayError {
 } derive(Debug, Eq)
 
 ///|
+pub extend ReplayError with Debug::{to_repr}
+
+///|
+pub extend ReplayError with Eq::{equal, not_equal}
+
+///|
 pub fn ReplayError::message(self : ReplayError) -> String {
   match self {
     InvalidJson(reason) => "invalid JSON: " + reason

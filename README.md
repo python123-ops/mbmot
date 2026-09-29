@@ -24,7 +24,7 @@ moon add python123-ops/mbmot@0.3.0
 
 这个版本包含跟踪、空间事件、检测框转换、NDJSON 编解码、MOT 文件读写与评测，以及网站使用的 JavaScript 桥接源码。原生命令也随源码包提供。
 
-需要安装 MoonBit 工具链。检出仓库后可以运行四个稳定后端的检查和测试：
+需要安装 MoonBit 工具链；当前 CI 使用 `moonc v0.10.14+7d59c7ec9`。检出仓库后可以运行四个稳定后端的检查和测试：
 
 ```bash
 moon fmt --check
@@ -225,7 +225,7 @@ py -3 -m venv .venv-video-demo
   --config examples\video-demo-config.json
 ```
 
-`--detections-format` 不指定时仍按原有 `xyxy` 格式读取。YOLO 流的帧号必须从 1 连续递增；尺寸不符、越界归一化框或不合规的类别筛选会在渲染前拒绝。仓库的视频测试用真实 90 帧样例生成混合像素／归一化中心框，在默认模式下抽取前 12 帧跑完整的转换、跟踪、空间分析和 MP4 渲染；设置 `MBMOT_FULL_VIDEO_TEST=1` 可运行全部 90 帧。
+`--detections-format` 不指定时仍按原有 `xyxy` 格式读取。YOLO 流的帧号必须从 1 连续递增；尺寸不符、越界归一化框或不合规的类别筛选会在渲染前拒绝。仓库的视频测试用真实 90 帧样例生成混合像素／归一化中心框；本地默认抽取前 12 帧，CI 运行全部 90 帧，覆盖转换、跟踪、空间分析和 MP4 渲染。
 
 当前演示是离线双遍处理：第一遍生成检测和 MoonBit 结果，第二遍渲染录像。它不保留原视频音轨；OpenCV HOG 只用于全身行人演示，车辆、工件或更复杂视角应提供外部检测流。
 
@@ -234,6 +234,15 @@ py -3 -m venv .venv-video-demo
 ![MBMOT 录像演示预览](examples/video/preview.png)
 
 [播放 MBMOT 空间分析录像](examples/video/mbmot-spatial-demo.mp4)。原始画面来源和样例口径记录在 [`examples/video/README.md`](examples/video/README.md)。
+
+这段录像的 90 帧检测流还用于核对原生命令与浏览器 MoonBit 产物：
+
+```bash
+node web/build.mjs
+node tools/recording_test.mjs _build/site/mbmot.js
+```
+
+测试按同一份像素规则逐帧比较轨迹和空间结果，检查录像中实际发生的越线、区域退出和停留统计；第 47 帧会临时注入退化框，确认错误前的完整输出保留，浏览器会话在拒绝后仍能继续处理原始帧。它检查数据链路，不以这段录像估算跟踪精度。
 
 [在线工作台](https://python123-ops.github.io/mbmot/) 使用浏览器内的 MoonBit 跟踪与空间分析。它可读取现有 `xyxy` 检测流，也可把逐帧 YOLO 中心框交给 MoonBit 桥接转换；多条计数线和区域可在画面中拖动或通过坐标输入编辑，每次改动都从首帧重算。下载的 JSON 报告包含转换后检测流的 SHA-256、规则、已处理帧的轨迹与事件，以及当前帧各规则统计。重叠区域按规则分别计数，不会合并为全画面的去重人数。浏览器桥接源码包含在模块中；页面静态资源单独由 GitHub Pages 部署。
 

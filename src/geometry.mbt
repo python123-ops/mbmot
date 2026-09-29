@@ -8,6 +8,12 @@ pub struct BoundingBox {
 } derive(Debug, Eq)
 
 ///|
+pub extend BoundingBox with Debug::{to_repr}
+
+///|
+pub extend BoundingBox with Eq::{equal, not_equal}
+
+///|
 fn is_finite(value : Double) -> Bool {
   !value.is_nan() && !value.is_inf()
 }

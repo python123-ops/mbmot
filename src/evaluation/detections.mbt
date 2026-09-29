@@ -8,6 +8,12 @@ pub struct MotDetection {
 } derive(Debug, Eq)
 
 ///|
+pub extend MotDetection with Debug::{to_repr}
+
+///|
+pub extend MotDetection with Eq::{equal, not_equal}
+
+///|
 pub fn MotDetection::new(
   frame : Int,
   bbox : @mbmot.BoundingBox,

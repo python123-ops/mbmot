@@ -1,6 +1,6 @@
 ///|
 test "NDJSON line decodes a frame and ordered detections" {
-  let parsed = parse_frame_line(
+  let parsed = @replay_codec.parse_frame_line(
     (
       #|{"frame":7,"detections":[{"xyxy":[1,2,11,22],"score":0.91,"class_id":3},{"xyxy":[20,5,25,15],"score":0.4,"class_id":1}]}
     ),
@@ -17,7 +17,7 @@ test "NDJSON line decodes a frame and ordered detections" {
 ///|
 test "NDJSON parser reports syntax and field context" {
   try
-    parse_frame_line(
+    @replay_codec.parse_frame_line(
       (
         #|{"frame":1,
       ),
@@ -29,7 +29,7 @@ test "NDJSON parser reports syntax and field context" {
     _ => fail("malformed JSON must be rejected")
   }
   try
-    parse_frame_line(
+    @replay_codec.parse_frame_line(
       (
         #|{"frame":1,"detections":[{"score":0.9,"class_id":0}]}
       ),
@@ -45,7 +45,7 @@ test "NDJSON parser reports syntax and field context" {
 ///|
 test "NDJSON parser identifies the invalid detection index" {
   try
-    parse_frame_line(
+    @replay_codec.parse_frame_line(
       (
         #|{"frame":2,"detections":[{"xyxy":[0,0,10,10],"score":0.9,"class_id":0},{"xyxy":[0,0,0,10],"score":0.8,"class_id":0}]}
       ),

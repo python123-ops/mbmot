@@ -4,6 +4,12 @@ pub(all) suberror ReplayLineError {
 } derive(Debug, Eq)
 
 ///|
+pub extend ReplayLineError with Debug::{to_repr}
+
+///|
+pub extend ReplayLineError with Eq::{equal, not_equal}
+
+///|
 pub fn ReplayLineError::line(self : ReplayLineError) -> Int {
   let ReplayLineError(line~, ..) = self
   line

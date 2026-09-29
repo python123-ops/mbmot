@@ -1,6 +1,8 @@
 ///|
 test "replay session emits stable track and lifecycle fields" {
-  let session = ReplaySession::new(@mbmot.TrackerConfig::default())
+  let session = @replay_codec.ReplaySession::new(
+    @mbmot.TrackerConfig::default(),
+  )
   let first = session.process_line(
     (
       #|{"frame":1,"detections":[{"xyxy":[0,0,10,10],"score":0.91,"class_id":0}]}
@@ -27,7 +29,9 @@ test "replay session emits stable track and lifecycle fields" {
 
 ///|
 test "replay errors carry physical line numbers and preserve tracker state" {
-  let session = ReplaySession::new(@mbmot.TrackerConfig::default())
+  let session = @replay_codec.ReplaySession::new(
+    @mbmot.TrackerConfig::default(),
+  )
   ignore(
     session.process_line(
       (
@@ -73,7 +77,9 @@ test "replay errors carry physical line numbers and preserve tracker state" {
 
 ///|
 test "replay reports decreasing frame at its input line" {
-  let session = ReplaySession::new(@mbmot.TrackerConfig::default())
+  let session = @replay_codec.ReplaySession::new(
+    @mbmot.TrackerConfig::default(),
+  )
   ignore(
     session.process_line(
       (

@@ -11,8 +11,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hustcer/setup-moonbit@v1.25
         with:
-          version: 0.10.12+1634b282e
-          core-version: 0.10.12+1634b282e
+          version: 0.10.14+7d59c7ec9
+          core-version: 0.10.14+7d59c7ec9
       - name: Show toolchain
         run: moon version --all
       - name: Refresh package registry
@@ -21,6 +21,8 @@ jobs:
         run: moon fmt --check
       - name: Check all stable backends
         run: moon check --target all --deny-warn
+      - name: Build all stable backends
+        run: moon build --target all --deny-warn
       - name: Test all stable backends
         run: moon test --target all --deny-warn
       - name: Build the browser product
@@ -38,6 +40,7 @@ jobs:
       - name: Test recorded-video process bridge and YOLO input
         env:
           MBMOT_TEST_MOON: moon
+          MBMOT_FULL_VIDEO_TEST: "1"
         run: python3 tools/video_demo/test_pipeline.py
       - name: Generate interfaces
         run: moon info --target all
@@ -67,6 +70,10 @@ jobs:
         env:
           MBMOT_MOON: moon
         run: node tools/observe_test.mjs
+      - name: Compare the recorded detection stream across native and browser
+        env:
+          MBMOT_MOON: moon
+        run: node tools/recording_test.mjs _build/site/mbmot.js
       - name: Check spatial event example
         run: |
           moon run src/analytics_demo --target native > analytics.actual.txt
