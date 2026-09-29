@@ -40,7 +40,8 @@ def open_video_writer(
 
 def validate_external_frames(rows: Sequence[dict]) -> None:
     for index, row in enumerate(rows, start=1):
-        if row.get("frame") != index:
+        frame = row.get("frame")
+        if isinstance(frame, bool) or not isinstance(frame, int) or frame != index:
             raise PipelineError(
                 f"external detections must contain consecutive frames from 1; row {index} differs"
             )

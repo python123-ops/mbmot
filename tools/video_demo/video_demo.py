@@ -12,6 +12,7 @@ from detector import HogPersonDetector
 from pipeline import (
     PipelineError,
     analyze_tracks,
+    convert_yolo_frames,
     load_analytics_setup,
     read_ndjson,
     track_detections,
@@ -33,6 +34,16 @@ def _arguments() -> argparse.Namespace:
         type=Path,
         help="detector NDJSON; omit to use OpenCV's built-in person detector",
     )
+    parser.add_argument(
+        "--detections-format",
+        choices=("xyxy", "yolo"),
+        default="xyxy",
+        help="external detection rows use xyxy or YOLO center boxes (default: xyxy)",
+    )
+    parser.add_argument(
+        "--classes",
+        help="JSON array of class IDs to keep from a YOLO detection stream",
+    )
     parser.add_argument("--confidence", type=float, default=0.55)
     parser.add_argument("--nms-threshold", type=float, default=0.4)
     parser.add_argument("--max-frames", type=int)
@@ -43,6 +54,10 @@ def _arguments() -> argparse.Namespace:
 
 
 def _validate_arguments(arguments: argparse.Namespace) -> None:
+    if arguments.detections_format == "yolo" and arguments.detections is None:
+        raise PipelineError("--detections-format yolo requires --detections")
+    if arguments.classes is not None and arguments.detections_format != "yolo":
+        raise PipelineError("--classes applies only to YOLO detections")
     if not 0.0 <= arguments.confidence <= 1.0:
         raise PipelineError("confidence must be in [0, 1]")
     if not 0.0 <= arguments.nms_threshold <= 1.0:
@@ -75,6 +90,15 @@ def main() -> int:
             arguments.max_frames,
             camera_copy,
         )
+        if arguments.detections_format == "yolo":
+            detection_frames = convert_yolo_frames(
+                detection_frames,
+                info.width,
+                info.height,
+                repository,
+                moon=arguments.moon,
+                classes=arguments.classes,
+            )
         setup = load_analytics_setup(
             arguments.config, width=info.width, height=info.height
         )

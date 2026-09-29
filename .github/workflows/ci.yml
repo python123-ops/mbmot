@@ -30,7 +30,12 @@ jobs:
           node web/build.mjs
           node web/tests/bridge.mjs _build/site/mbmot.js
           node web/tests/workbench.mjs _build/site/mbmot.js
-      - name: Test recorded-video process bridge
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install recorded-video test dependency
+        run: python3 -m pip install -r tools/video_demo/requirements.txt
+      - name: Test recorded-video process bridge and YOLO input
         env:
           MBMOT_TEST_MOON: moon
         run: python3 tools/video_demo/test_pipeline.py

@@ -213,6 +213,20 @@ py -3 -m venv .venv-video-demo
 
 传入时增加 `--detections detections.ndjson`，演示程序便不再运行 HOG。这个接入面不限制 YOLO 版本或推理框架。`examples/video-demo-config.json` 使用归一化规则坐标，运行时按录像宽高转成像素坐标。
 
+当前源码的录像命令也能直接读取逐帧 YOLO 中心框。输入行应含 `frame`、与录像相同的 `width` / `height`、`coordinates`（`normalized` 或 `pixels`）和 `cxcywh` 检测列表；转换仍由 MoonBit 的 `yolo_import` 执行，渲染工具只核对帧与录像尺寸。需要筛选类别时使用 `--classes '[0,2]'`，原始行中的所有检测仍会先通过格式校验。例如：
+
+```powershell
+.\.venv-video-demo\Scripts\python.exe tools\video_demo\video_demo.py `
+  --source input.mp4 `
+  --detections detections.yolo.ndjson `
+  --detections-format yolo `
+  --classes '[0,2]' `
+  --output input.mbmot.mp4 `
+  --config examples\video-demo-config.json
+```
+
+`--detections-format` 不指定时仍按原有 `xyxy` 格式读取。YOLO 流的帧号必须从 1 连续递增；尺寸不符、越界归一化框或不合规的类别筛选会在渲染前拒绝。仓库的视频测试用真实 90 帧样例生成混合像素／归一化中心框，在默认模式下抽取前 12 帧跑完整的转换、跟踪、空间分析和 MP4 渲染；设置 `MBMOT_FULL_VIDEO_TEST=1` 可运行全部 90 帧。
+
 当前演示是离线双遍处理：第一遍生成检测和 MoonBit 结果，第二遍渲染录像。它不保留原视频音轨；OpenCV HOG 只用于全身行人演示，车辆、工件或更复杂视角应提供外部检测流。
 
 仓库中保留了一段可直接查看的 90 帧输出：

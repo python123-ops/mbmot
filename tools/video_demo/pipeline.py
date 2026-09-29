@@ -6,7 +6,7 @@ import json
 import math
 import subprocess
 from pathlib import Path
-from typing import Any, Iterable, List, Mapping, Sequence
+from typing import Any, Iterable, List, Mapping, Optional, Sequence
 
 
 JsonObject = Mapping[str, Any]
@@ -164,11 +164,12 @@ def run_moon_package(
     repository: Path,
     moon: str = "moon",
     timeout: int = 600,
+    arguments: Sequence[str] = (),
 ) -> List[dict]:
     payload = "".join(compact_json(row) + "\n" for row in rows)
     try:
         completed = subprocess.run(
-            [moon, "run", package, "--target", "native"],
+            [moon, "run", package, "--target", "native", *arguments],
             cwd=str(repository),
             input=payload,
             stdout=subprocess.PIPE,
@@ -197,6 +198,44 @@ def _validate_frames(rows: Sequence[JsonObject], label: str) -> None:
         if frame <= previous:
             raise PipelineError(f"{label} frames must be strictly increasing")
         previous = frame
+
+
+def convert_yolo_frames(
+    frames: Sequence[JsonObject],
+    width: int,
+    height: int,
+    repository: Path,
+    moon: str = "moon",
+    classes: Optional[str] = None,
+) -> List[dict]:
+    """Use MoonBit's detector adapter after checking the video/stream pairing."""
+    _validate_frames(frames, "YOLO detection")
+    for index, row in enumerate(frames, start=1):
+        frame_width = row.get("width")
+        frame_height = row.get("height")
+        if (
+            isinstance(frame_width, bool)
+            or not isinstance(frame_width, int)
+            or isinstance(frame_height, bool)
+            or not isinstance(frame_height, int)
+            or frame_width != width
+            or frame_height != height
+        ):
+            raise PipelineError(
+                f"YOLO detection row {index} dimensions do not match video {width}x{height}"
+            )
+    arguments = ("--classes", classes) if classes is not None else ()
+    converted = run_moon_package(
+        "src/yolo_import", frames, repository, moon=moon, arguments=arguments
+    )
+    if len(converted) != len(frames):
+        raise PipelineError(
+            f"YOLO converter returned {len(converted)} frames for {len(frames)} inputs"
+        )
+    for source, output in zip(frames, converted):
+        if source["frame"] != output.get("frame"):
+            raise PipelineError("YOLO converter output frame does not match its input")
+    return converted
 
 
 def track_detections(
