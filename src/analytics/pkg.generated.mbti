@@ -9,6 +9,7 @@ import {
 // Values
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror AnalyticsError {
   InvalidPoint
   InvalidBoundingBox
@@ -16,44 +17,47 @@ pub(all) suberror AnalyticsError {
   InvalidRegion(String)
   InvalidConfig(String)
   InvalidClassFilter(String)
-  DuplicateRuleId(kind~ : String, id~ : Int)
-  NonIncreasingFrame(previous~ : Int, received~ : Int)
-  InvalidTrackId(Int)
-  InvalidClassId(Int)
-  DuplicateTrackId(Int)
-  ConflictingTrackId(Int)
-  ChangedClassId(track_id~ : Int, previous~ : Int, received~ : Int)
-  UnknownLifecycleId(Int)
-  ReusedRemovedId(Int)
-} derive(Eq, @debug.Debug)
+  DuplicateRuleId(kind~ : String, id~ : Int32)
+  NonIncreasingFrame(previous~ : Int32, received~ : Int32)
+  InvalidTrackId(Int32)
+  InvalidClassId(Int32)
+  DuplicateTrackId(Int32)
+  ConflictingTrackId(Int32)
+  ChangedClassId(track_id~ : Int32, previous~ : Int32, received~ : Int32)
+  UnknownLifecycleId(Int32)
+  ReusedRemovedId(Int32)
+}
 pub fn AnalyticsError::equal(Self, Self) -> Bool
 pub fn AnalyticsError::message(Self) -> String
 pub fn AnalyticsError::not_equal(Self, Self) -> Bool
 pub fn AnalyticsError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
-type AnalyticsConfig derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type AnalyticsConfig
 pub fn AnalyticsConfig::anchor(Self) -> Anchor
 pub fn AnalyticsConfig::default() -> Self
 pub fn AnalyticsConfig::equal(Self, Self) -> Bool
-pub fn AnalyticsConfig::new(anchor~ : Anchor, stable_frames~ : Int) -> Self raise AnalyticsError
+pub fn AnalyticsConfig::new(anchor~ : Anchor, stable_frames~ : Int32) -> Self raise AnalyticsError
 pub fn AnalyticsConfig::not_equal(Self, Self) -> Bool
-pub fn AnalyticsConfig::stable_frames(Self) -> Int
+pub fn AnalyticsConfig::stable_frames(Self) -> Int32
 pub fn AnalyticsConfig::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum AnalyticsEvent {
-  LineCrossed(line_id~ : Int, track_id~ : Int, direction~ : CrossingDirection)
-  RegionEntered(region_id~ : Int, track_id~ : Int, initial~ : Bool)
-  RegionExited(region_id~ : Int, track_id~ : Int, dwell_frames~ : Int)
-} derive(Eq, @debug.Debug)
+  LineCrossed(line_id~ : Int32, track_id~ : Int32, direction~ : CrossingDirection)
+  RegionEntered(region_id~ : Int32, track_id~ : Int32, initial~ : Bool)
+  RegionExited(region_id~ : Int32, track_id~ : Int32, dwell_frames~ : Int32)
+}
 pub fn AnalyticsEvent::equal(Self, Self) -> Bool
 pub fn AnalyticsEvent::not_equal(Self, Self) -> Bool
 pub fn AnalyticsEvent::to_repr(Self) -> @debug.Repr
 
-type AnalyticsFrame derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type AnalyticsFrame
 pub fn AnalyticsFrame::equal(Self, Self) -> Bool
 pub fn AnalyticsFrame::events(Self) -> Array[AnalyticsEvent]
-pub fn AnalyticsFrame::frame_id(Self) -> Int
+pub fn AnalyticsFrame::frame_id(Self) -> Int32
 pub fn AnalyticsFrame::line_class_counts(Self) -> Array[LineClassCount]
 pub fn AnalyticsFrame::line_counts(Self) -> Array[LineCount]
 pub fn AnalyticsFrame::not_equal(Self, Self) -> Bool
@@ -63,55 +67,61 @@ pub fn AnalyticsFrame::region_counts(Self) -> Array[RegionCount]
 pub fn AnalyticsFrame::to_repr(Self) -> @debug.Repr
 pub fn AnalyticsFrame::transition_counts(Self) -> Array[RegionTransitionCount]
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Anchor {
   Center
   BottomCenter
-} derive(Eq, @debug.Debug)
+}
 pub fn Anchor::equal(Self, Self) -> Bool
 pub fn Anchor::not_equal(Self, Self) -> Bool
 pub fn Anchor::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum CrossingDirection {
   LeftToRight
   RightToLeft
-} derive(Eq, @debug.Debug)
+}
 pub fn CrossingDirection::equal(Self, Self) -> Bool
 pub fn CrossingDirection::not_equal(Self, Self) -> Bool
 pub fn CrossingDirection::to_repr(Self) -> @debug.Repr
 
-type DirectedLine derive(Eq, @debug.Debug)
-pub fn DirectedLine::class_ids(Self) -> Array[Int]?
+#derive(Eq, @debug.Debug)
+type DirectedLine
+pub fn DirectedLine::class_ids(Self) -> Array[Int32]?
 pub fn DirectedLine::end(Self) -> Point
 pub fn DirectedLine::equal(Self, Self) -> Bool
-pub fn DirectedLine::for_classes(Int, Point, Point, Array[Int]) -> Self raise AnalyticsError
-pub fn DirectedLine::id(Self) -> Int
-pub fn DirectedLine::new(Int, Point, Point) -> Self raise AnalyticsError
+pub fn DirectedLine::for_classes(Int32, Point, Point, Array[Int32]) -> Self raise AnalyticsError
+pub fn DirectedLine::id(Self) -> Int32
+pub fn DirectedLine::new(Int32, Point, Point) -> Self raise AnalyticsError
 pub fn DirectedLine::not_equal(Self, Self) -> Bool
 pub fn DirectedLine::start(Self) -> Point
 pub fn DirectedLine::to_repr(Self) -> @debug.Repr
 
-type LineClassCount derive(Eq, @debug.Debug)
-pub fn LineClassCount::class_id(Self) -> Int
+#derive(Eq, @debug.Debug)
+type LineClassCount
+pub fn LineClassCount::class_id(Self) -> Int32
 pub fn LineClassCount::equal(Self, Self) -> Bool
-pub fn LineClassCount::left_to_right(Self) -> Int
-pub fn LineClassCount::line_id(Self) -> Int
+pub fn LineClassCount::left_to_right(Self) -> Int32
+pub fn LineClassCount::line_id(Self) -> Int32
 pub fn LineClassCount::not_equal(Self, Self) -> Bool
-pub fn LineClassCount::right_to_left(Self) -> Int
+pub fn LineClassCount::right_to_left(Self) -> Int32
 pub fn LineClassCount::to_repr(Self) -> @debug.Repr
-pub fn LineClassCount::unique_left_to_right(Self) -> Int
-pub fn LineClassCount::unique_right_to_left(Self) -> Int
+pub fn LineClassCount::unique_left_to_right(Self) -> Int32
+pub fn LineClassCount::unique_right_to_left(Self) -> Int32
 
-type LineCount derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type LineCount
 pub fn LineCount::equal(Self, Self) -> Bool
-pub fn LineCount::left_to_right(Self) -> Int
-pub fn LineCount::line_id(Self) -> Int
+pub fn LineCount::left_to_right(Self) -> Int32
+pub fn LineCount::line_id(Self) -> Int32
 pub fn LineCount::not_equal(Self, Self) -> Bool
-pub fn LineCount::right_to_left(Self) -> Int
+pub fn LineCount::right_to_left(Self) -> Int32
 pub fn LineCount::to_repr(Self) -> @debug.Repr
-pub fn LineCount::unique_left_to_right(Self) -> Int
-pub fn LineCount::unique_right_to_left(Self) -> Int
+pub fn LineCount::unique_left_to_right(Self) -> Int32
+pub fn LineCount::unique_right_to_left(Self) -> Int32
 
-type Point derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type Point
 pub fn Point::equal(Self, Self) -> Bool
 pub fn Point::new(Double, Double) -> Self raise AnalyticsError
 pub fn Point::not_equal(Self, Self) -> Bool
@@ -119,74 +129,80 @@ pub fn Point::to_repr(Self) -> @debug.Repr
 pub fn Point::x(Self) -> Double
 pub fn Point::y(Self) -> Double
 
-type PolygonRegion derive(Eq, @debug.Debug)
-pub fn PolygonRegion::class_ids(Self) -> Array[Int]?
+#derive(Eq, @debug.Debug)
+type PolygonRegion
+pub fn PolygonRegion::class_ids(Self) -> Array[Int32]?
 pub fn PolygonRegion::equal(Self, Self) -> Bool
-pub fn PolygonRegion::for_classes(Int, Array[Point], Array[Int]) -> Self raise AnalyticsError
-pub fn PolygonRegion::id(Self) -> Int
-pub fn PolygonRegion::new(Int, Array[Point]) -> Self raise AnalyticsError
+pub fn PolygonRegion::for_classes(Int32, Array[Point], Array[Int32]) -> Self raise AnalyticsError
+pub fn PolygonRegion::id(Self) -> Int32
+pub fn PolygonRegion::new(Int32, Array[Point]) -> Self raise AnalyticsError
 pub fn PolygonRegion::not_equal(Self, Self) -> Bool
 pub fn PolygonRegion::to_repr(Self) -> @debug.Repr
 pub fn PolygonRegion::vertices(Self) -> Array[Point]
 
-type RegionClassCount derive(Eq, @debug.Debug)
-pub fn RegionClassCount::class_id(Self) -> Int
-pub fn RegionClassCount::completed_dwell_frames(Self) -> Int
-pub fn RegionClassCount::current_occupancy(Self) -> Int
-pub fn RegionClassCount::entries(Self) -> Int
+#derive(Eq, @debug.Debug)
+type RegionClassCount
+pub fn RegionClassCount::class_id(Self) -> Int32
+pub fn RegionClassCount::completed_dwell_frames(Self) -> Int32
+pub fn RegionClassCount::current_occupancy(Self) -> Int32
+pub fn RegionClassCount::entries(Self) -> Int32
 pub fn RegionClassCount::equal(Self, Self) -> Bool
-pub fn RegionClassCount::exits(Self) -> Int
+pub fn RegionClassCount::exits(Self) -> Int32
 pub fn RegionClassCount::not_equal(Self, Self) -> Bool
-pub fn RegionClassCount::peak_occupancy(Self) -> Int
-pub fn RegionClassCount::region_id(Self) -> Int
+pub fn RegionClassCount::peak_occupancy(Self) -> Int32
+pub fn RegionClassCount::region_id(Self) -> Int32
 pub fn RegionClassCount::to_repr(Self) -> @debug.Repr
-pub fn RegionClassCount::unique_tracks(Self) -> Int
+pub fn RegionClassCount::unique_tracks(Self) -> Int32
 
-type RegionCount derive(Eq, @debug.Debug)
-pub fn RegionCount::completed_dwell_frames(Self) -> Int
-pub fn RegionCount::current_occupancy(Self) -> Int
-pub fn RegionCount::entries(Self) -> Int
+#derive(Eq, @debug.Debug)
+type RegionCount
+pub fn RegionCount::completed_dwell_frames(Self) -> Int32
+pub fn RegionCount::current_occupancy(Self) -> Int32
+pub fn RegionCount::entries(Self) -> Int32
 pub fn RegionCount::equal(Self, Self) -> Bool
-pub fn RegionCount::exits(Self) -> Int
+pub fn RegionCount::exits(Self) -> Int32
 pub fn RegionCount::not_equal(Self, Self) -> Bool
-pub fn RegionCount::peak_occupancy(Self) -> Int
-pub fn RegionCount::region_id(Self) -> Int
+pub fn RegionCount::peak_occupancy(Self) -> Int32
+pub fn RegionCount::region_id(Self) -> Int32
 pub fn RegionCount::to_repr(Self) -> @debug.Repr
-pub fn RegionCount::unique_tracks(Self) -> Int
+pub fn RegionCount::unique_tracks(Self) -> Int32
 
-type RegionOccupant derive(Eq, @debug.Debug)
-pub fn RegionOccupant::class_id(Self) -> Int
-pub fn RegionOccupant::dwell_frames(Self) -> Int
+#derive(Eq, @debug.Debug)
+type RegionOccupant
+pub fn RegionOccupant::class_id(Self) -> Int32
+pub fn RegionOccupant::dwell_frames(Self) -> Int32
 pub fn RegionOccupant::equal(Self, Self) -> Bool
 pub fn RegionOccupant::not_equal(Self, Self) -> Bool
-pub fn RegionOccupant::region_id(Self) -> Int
+pub fn RegionOccupant::region_id(Self) -> Int32
 pub fn RegionOccupant::to_repr(Self) -> @debug.Repr
-pub fn RegionOccupant::track_id(Self) -> Int
+pub fn RegionOccupant::track_id(Self) -> Int32
 
-type RegionTransitionCount derive(Eq, @debug.Debug)
-pub fn RegionTransitionCount::class_id(Self) -> Int
-pub fn RegionTransitionCount::count(Self) -> Int
+#derive(Eq, @debug.Debug)
+type RegionTransitionCount
+pub fn RegionTransitionCount::class_id(Self) -> Int32
+pub fn RegionTransitionCount::count(Self) -> Int32
 pub fn RegionTransitionCount::equal(Self, Self) -> Bool
-pub fn RegionTransitionCount::from_region_id(Self) -> Int
+pub fn RegionTransitionCount::from_region_id(Self) -> Int32
 pub fn RegionTransitionCount::not_equal(Self, Self) -> Bool
-pub fn RegionTransitionCount::to_region_id(Self) -> Int
+pub fn RegionTransitionCount::to_region_id(Self) -> Int32
 pub fn RegionTransitionCount::to_repr(Self) -> @debug.Repr
 
 type SpatialAnalyzer
 pub fn SpatialAnalyzer::new(AnalyticsConfig, Array[DirectedLine], Array[PolygonRegion]) -> Self raise AnalyticsError
 pub fn SpatialAnalyzer::reset(Self) -> Unit
-pub fn SpatialAnalyzer::update(Self, Int, Array[TrackSample], Array[Int], Array[Int]) -> AnalyticsFrame raise AnalyticsError
-pub fn SpatialAnalyzer::update_mbmot(Self, Int, @mbmot.FrameTracks) -> AnalyticsFrame raise AnalyticsError
+pub fn SpatialAnalyzer::update(Self, Int32, Array[TrackSample], Array[Int32], Array[Int32]) -> AnalyticsFrame raise AnalyticsError
+pub fn SpatialAnalyzer::update_mbmot(Self, Int32, @mbmot.FrameTracks) -> AnalyticsFrame raise AnalyticsError
 
-type TrackSample derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type TrackSample
 pub fn TrackSample::bbox(Self) -> @mbmot.BoundingBox
-pub fn TrackSample::class_id(Self) -> Int
+pub fn TrackSample::class_id(Self) -> Int32
 pub fn TrackSample::equal(Self, Self) -> Bool
 pub fn TrackSample::from_track(@mbmot.Track) -> Self
-pub fn TrackSample::new(Int, @mbmot.BoundingBox, Int) -> Self raise AnalyticsError
+pub fn TrackSample::new(Int32, @mbmot.BoundingBox, Int32) -> Self raise AnalyticsError
 pub fn TrackSample::not_equal(Self, Self) -> Bool
 pub fn TrackSample::to_repr(Self) -> @debug.Repr
-pub fn TrackSample::track_id(Self) -> Int
+pub fn TrackSample::track_id(Self) -> Int32
 
 // Type aliases
 

@@ -1,11 +1,12 @@
 ///|
 /// One detector observation from a MOTChallenge detection file.
+#derive(Debug, Eq)
 pub struct MotDetection {
-  frame : Int
+  frame : Int32
   bbox : @mbmot.BoundingBox
   confidence : Double
-  input_order : Int
-} derive(Debug, Eq)
+  input_order : Int32
+}
 
 ///|
 pub extend MotDetection with Debug::{to_repr}
@@ -15,7 +16,7 @@ pub extend MotDetection with Eq::{equal, not_equal}
 
 ///|
 pub fn MotDetection::new(
-  frame : Int,
+  frame : Int32,
   bbox : @mbmot.BoundingBox,
   confidence : Double,
 ) -> MotDetection raise MotError {
@@ -32,7 +33,7 @@ pub fn MotDetection::new(
 }
 
 ///|
-pub fn MotDetection::frame(self : MotDetection) -> Int {
+pub fn MotDetection::frame(self : MotDetection) -> Int32 {
   self.frame
 }
 

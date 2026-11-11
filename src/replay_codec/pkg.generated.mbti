@@ -7,43 +7,45 @@ import {
 }
 
 // Values
-pub fn encode_frame_result(Int, @mbmot.FrameTracks) -> String
+pub fn encode_frame_result(Int32, @mbmot.FrameTracks) -> String
 
 pub fn parse_frame_line(StringView) -> ReplayFrame raise ReplayError
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror ReplayError {
   InvalidJson(String)
   InvalidFrame(String)
-  InvalidDetection(index~ : Int, reason~ : String)
-} derive(Eq, @debug.Debug)
+  InvalidDetection(index~ : Int32, reason~ : String)
+}
 pub fn ReplayError::equal(Self, Self) -> Bool
 pub fn ReplayError::message(Self) -> String
 pub fn ReplayError::not_equal(Self, Self) -> Bool
 pub fn ReplayError::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) suberror ReplayLineError {
-  ReplayLineError(line~ : Int, reason~ : String)
-} derive(Eq, @debug.Debug)
+  ReplayLineError(line~ : Int32, reason~ : String)
+}
 pub fn ReplayLineError::equal(Self, Self) -> Bool
-pub fn ReplayLineError::line(Self) -> Int
+pub fn ReplayLineError::line(Self) -> Int32
 pub fn ReplayLineError::message(Self) -> String
 pub fn ReplayLineError::not_equal(Self, Self) -> Bool
 pub fn ReplayLineError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub struct ReplayFrame {
-  frame : Int
+  frame : Int32
   detections : Array[@mbmot.Detection]
 }
 pub fn ReplayFrame::detections(Self) -> Array[@mbmot.Detection]
-pub fn ReplayFrame::frame(Self) -> Int
+pub fn ReplayFrame::frame(Self) -> Int32
 
 pub struct ReplaySession {
   tracker : @mbmot.Tracker
-  mut lines_read : Int
+  mut lines_read : Int32
 }
-pub fn ReplaySession::lines_read(Self) -> Int
+pub fn ReplaySession::lines_read(Self) -> Int32
 pub fn ReplaySession::new(@mbmot.TrackerConfig) -> Self
 pub fn ReplaySession::process_line(Self, StringView) -> String raise ReplayLineError
 

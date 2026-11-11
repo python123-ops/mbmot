@@ -4,7 +4,7 @@ fn write_double(builder : StringBuilder, value : Double) -> Unit {
 }
 
 ///|
-fn write_int_array(builder : StringBuilder, values : Array[Int]) -> Unit {
+fn write_int_array(builder : StringBuilder, values : Array[Int32]) -> Unit {
   builder.write_char('[')
   for index, value in values {
     if index > 0 {
@@ -70,7 +70,10 @@ fn write_track(builder : StringBuilder, track : @mbmot.Track) -> Unit {
 }
 
 ///|
-pub fn encode_frame_result(frame : Int, result : @mbmot.FrameTracks) -> String {
+pub fn encode_frame_result(
+  frame : Int32,
+  result : @mbmot.FrameTracks,
+) -> String {
   let builder = StringBuilder::StringBuilder()
   builder.write_string(
     (

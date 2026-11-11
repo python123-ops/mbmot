@@ -16,8 +16,8 @@ priv struct TrackedState {
 struct Tracker {
   config : TrackerConfig
   mut states : Array[TrackedState]
-  mut next_id : Int
-  mut last_frame : Int?
+  mut next_id : Int32
+  mut last_frame : Int32?
 }
 
 ///|
@@ -54,7 +54,7 @@ fn TrackedState::mark_lost(self : TrackedState) -> TrackedState {
 fn TrackedState::observe(
   self : TrackedState,
   detection : Detection,
-  frame_id : Int,
+  frame_id : Int32,
 ) -> TrackedState {
   {
     track: {
@@ -140,8 +140,8 @@ fn advance_silent_frame(
 ///|
 fn advance_skipped_frames(
   states : Array[TrackedState],
-  previous_frame : Int,
-  frame_id : Int,
+  previous_frame : Int32,
+  frame_id : Int32,
   config : TrackerConfig,
 ) -> Array[TrackedState] {
   let previous = previous_frame.to_int64()
@@ -164,9 +164,9 @@ fn advance_skipped_frames(
 
 ///|
 fn new_state(
-  track_id : Int,
+  track_id : Int32,
   detection : Detection,
-  frame_id : Int,
+  frame_id : Int32,
 ) -> TrackedState {
   {
     track: {
@@ -189,7 +189,7 @@ fn new_state(
 /// The entire frame is validated before tracker state changes.
 pub fn Tracker::update(
   self : Tracker,
-  frame_id : Int,
+  frame_id : Int32,
   detections : Array[Detection],
 ) -> FrameTracks raise TrackerError {
   match self.last_frame {
@@ -239,7 +239,7 @@ pub fn Tracker::update(
   }
   let low_pool : Array[TrackedState] = []
   let pending_lost : Array[TrackedState] = []
-  let removed : Array[Int] = []
+  let removed : Array[Int32] = []
   for index, state in predicted {
     if !state_matched[index] {
       if state.active() {
@@ -286,7 +286,7 @@ pub fn Tracker::update(
     }
   }
   let retained_lost : Array[TrackedState] = []
-  let lost : Array[Int] = []
+  let lost : Array[Int32] = []
   for state in pending_lost {
     if state.expired(frame_id.to_int64(), self.config) {
       removed.push(state.track.track_id)

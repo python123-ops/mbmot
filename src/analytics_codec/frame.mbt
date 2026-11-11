@@ -1,9 +1,9 @@
 ///|
 priv struct AnalyticsReplayFrame {
-  frame : Int
+  frame : Int32
   tracks : Array[@analytics.TrackSample]
-  lost : Array[Int]
-  removed : Array[Int]
+  lost : Array[Int32]
+  removed : Array[Int32]
 }
 
 ///|

@@ -1,10 +1,10 @@
 ///|
-extern "C" fn exit_process(code : Int) = "exit"
+extern "C" fn exit_process(code : Int32) = "exit"
 
 ///|
 async fn main {
   let arguments = @env.args()
-  let mut classes : Array[Int] = []
+  let mut classes : Array[Int32] = []
   if arguments.length() == 3 && arguments[1] == "--classes" {
     let json = @json.parse(arguments[2]) catch {
       _ => {

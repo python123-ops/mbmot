@@ -28,14 +28,15 @@ pub fn track_detections(Array[MotDetection], @mbmot.TrackerConfig) -> Array[MotO
 // Errors
 pub(all) suberror MotError {
   InvalidConfig(String)
-  InvalidMotLine(line~ : Int, message~ : String)
+  InvalidMotLine(line~ : Int32, message~ : String)
 }
 pub fn MotError::message(Self) -> String
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub struct EvaluationConfig {
   match_iou_threshold : Double
-} derive(Eq, @debug.Debug)
+}
 pub fn EvaluationConfig::default() -> Self
 pub fn EvaluationConfig::equal(Self, Self) -> Bool
 pub fn EvaluationConfig::match_iou_threshold(Self) -> Double
@@ -43,66 +44,69 @@ pub fn EvaluationConfig::new(match_iou_threshold~ : Double) -> Self raise MotErr
 pub fn EvaluationConfig::not_equal(Self, Self) -> Bool
 pub fn EvaluationConfig::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub struct EvaluationReport {
   match_iou_threshold : Double
-  frames : Int
-  ground_truth_detections : Int
-  tracker_detections : Int
-  true_positives : Int
-  false_positives : Int
-  false_negatives : Int
-  identity_switches : Int
+  frames : Int32
+  ground_truth_detections : Int32
+  tracker_detections : Int32
+  true_positives : Int32
+  false_positives : Int32
+  false_negatives : Int32
+  identity_switches : Int32
   matched_iou_sum : Double
-  id_true_positives : Int
-  id_false_positives : Int
-  id_false_negatives : Int
-} derive(Eq, @debug.Debug)
+  id_true_positives : Int32
+  id_false_positives : Int32
+  id_false_negatives : Int32
+}
 pub fn EvaluationReport::equal(Self, Self) -> Bool
-pub fn EvaluationReport::false_negatives(Self) -> Int
-pub fn EvaluationReport::false_positives(Self) -> Int
-pub fn EvaluationReport::frames(Self) -> Int
-pub fn EvaluationReport::ground_truth_detections(Self) -> Int
-pub fn EvaluationReport::id_false_negatives(Self) -> Int
-pub fn EvaluationReport::id_false_positives(Self) -> Int
+pub fn EvaluationReport::false_negatives(Self) -> Int32
+pub fn EvaluationReport::false_positives(Self) -> Int32
+pub fn EvaluationReport::frames(Self) -> Int32
+pub fn EvaluationReport::ground_truth_detections(Self) -> Int32
+pub fn EvaluationReport::id_false_negatives(Self) -> Int32
+pub fn EvaluationReport::id_false_positives(Self) -> Int32
 pub fn EvaluationReport::id_precision(Self) -> Double
 pub fn EvaluationReport::id_recall(Self) -> Double
-pub fn EvaluationReport::id_true_positives(Self) -> Int
-pub fn EvaluationReport::identity_switches(Self) -> Int
+pub fn EvaluationReport::id_true_positives(Self) -> Int32
+pub fn EvaluationReport::identity_switches(Self) -> Int32
 pub fn EvaluationReport::idf1(Self) -> Double
 pub fn EvaluationReport::match_iou_threshold(Self) -> Double
 pub fn EvaluationReport::mota(Self) -> Double
 pub fn EvaluationReport::motp(Self) -> Double
 pub fn EvaluationReport::not_equal(Self, Self) -> Bool
 pub fn EvaluationReport::to_repr(Self) -> @debug.Repr
-pub fn EvaluationReport::tracker_detections(Self) -> Int
-pub fn EvaluationReport::true_positives(Self) -> Int
+pub fn EvaluationReport::tracker_detections(Self) -> Int32
+pub fn EvaluationReport::true_positives(Self) -> Int32
 
+#derive(Eq, @debug.Debug)
 pub struct MotDetection {
-  frame : Int
+  frame : Int32
   bbox : @mbmot.BoundingBox
   confidence : Double
-  input_order : Int
-} derive(Eq, @debug.Debug)
+  input_order : Int32
+}
 pub fn MotDetection::bbox(Self) -> @mbmot.BoundingBox
 pub fn MotDetection::confidence(Self) -> Double
 pub fn MotDetection::equal(Self, Self) -> Bool
-pub fn MotDetection::frame(Self) -> Int
-pub fn MotDetection::new(Int, @mbmot.BoundingBox, Double) -> Self raise MotError
+pub fn MotDetection::frame(Self) -> Int32
+pub fn MotDetection::new(Int32, @mbmot.BoundingBox, Double) -> Self raise MotError
 pub fn MotDetection::not_equal(Self, Self) -> Bool
 pub fn MotDetection::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub struct MotObject {
-  frame : Int
-  identity : Int
+  frame : Int32
+  identity : Int32
   bbox : @mbmot.BoundingBox
   confidence : Double
-} derive(Eq, @debug.Debug)
+}
 pub fn MotObject::bbox(Self) -> @mbmot.BoundingBox
 pub fn MotObject::confidence(Self) -> Double
 pub fn MotObject::equal(Self, Self) -> Bool
-pub fn MotObject::frame(Self) -> Int
-pub fn MotObject::identity(Self) -> Int
-pub fn MotObject::new(Int, Int, @mbmot.BoundingBox, Double) -> Self raise MotError
+pub fn MotObject::frame(Self) -> Int32
+pub fn MotObject::identity(Self) -> Int32
+pub fn MotObject::new(Int32, Int32, @mbmot.BoundingBox, Double) -> Self raise MotError
 pub fn MotObject::not_equal(Self, Self) -> Bool
 pub fn MotObject::to_repr(Self) -> @debug.Repr
 

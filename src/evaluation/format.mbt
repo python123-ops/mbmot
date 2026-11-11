@@ -1,5 +1,5 @@
 ///|
-fn line_error(line : Int, message : String) -> MotError {
+fn line_error(line : Int32, message : String) -> MotError {
   InvalidMotLine(line~, message~)
 }
 
@@ -15,9 +15,9 @@ fn fields_of(line : StringView) -> Array[StringView] {
 ///|
 fn parse_int_field(
   field : StringView,
-  line : Int,
+  line : Int32,
   name : String,
-) -> Int raise MotError {
+) -> Int32 raise MotError {
   @string.parse_int(field) catch {
     _ => raise line_error(line, "invalid \{name}")
   }
@@ -26,7 +26,7 @@ fn parse_int_field(
 ///|
 fn parse_double_field(
   field : StringView,
-  line : Int,
+  line : Int32,
   name : String,
 ) -> Double raise MotError {
   let value = @string.parse_double(field) catch {
@@ -41,7 +41,7 @@ fn parse_double_field(
 ///|
 fn parse_object(
   fields : Array[StringView],
-  line : Int,
+  line : Int32,
   confidence : Double,
 ) -> MotObject raise MotError {
   let frame = parse_int_field(fields[0], line, "frame")

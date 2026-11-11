@@ -1,22 +1,25 @@
 ///|
+#derive(FromJson)
 priv struct InputDetection {
   xyxy : Array[Double]
   score : Double
-  class_id : Int
-} derive(FromJson)
+  class_id : Int32
+}
 
 ///|
+#derive(FromJson)
 priv struct InputFrame {
-  frame : Int
+  frame : Int32
   detections : Array[InputDetection]
-} derive(FromJson)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror ReplayError {
   InvalidJson(String)
   InvalidFrame(String)
-  InvalidDetection(index~ : Int, reason~ : String)
-} derive(Debug, Eq)
+  InvalidDetection(index~ : Int32, reason~ : String)
+}
 
 ///|
 pub extend ReplayError with Debug::{to_repr}
@@ -36,12 +39,12 @@ pub fn ReplayError::message(self : ReplayError) -> String {
 
 ///|
 pub struct ReplayFrame {
-  frame : Int
+  frame : Int32
   detections : Array[@mbmot.Detection]
 }
 
 ///|
-pub fn ReplayFrame::frame(self : ReplayFrame) -> Int {
+pub fn ReplayFrame::frame(self : ReplayFrame) -> Int32 {
   self.frame
 }
 

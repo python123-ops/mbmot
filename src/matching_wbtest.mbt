@@ -1,11 +1,11 @@
 ///|
-fn pair_tuples(matches : Array[MatchPair]) -> Array[(Int, Int)] {
+fn pair_tuples(matches : Array[MatchPair]) -> Array[(Int32, Int32)] {
   matches.map(pair => (pair.track_index, pair.detection_index))
 }
 
 ///|
 priv struct MatchObjective {
-  count : Int
+  count : Int32
   cost : Double
 }
 
@@ -19,7 +19,7 @@ fn better_objective(left : MatchObjective, right : MatchObjective) -> Bool {
 fn brute_force_from(
   costs : Array[Array[Double]],
   max_cost : Double,
-  row : Int,
+  row : Int32,
   used : Array[Bool],
 ) -> MatchObjective {
   if row == costs.length() {

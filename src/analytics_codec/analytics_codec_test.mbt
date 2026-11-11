@@ -1,17 +1,17 @@
 ///|
 fn setup_line(
-  anchor? : String = "bottom_center",
-  stable_frames? : Int = 1,
+  anchor~ : String = "bottom_center",
+  stable_frames~ : Int32 = 1,
 ) -> String {
   "{\"config\":{\"anchor\":\"\{anchor}\",\"stable_frames\":\{stable_frames}},\"lines\":[{\"id\":4,\"start\":[5,0],\"end\":[5,10]}],\"regions\":[{\"id\":7,\"vertices\":[[0,0],[10,0],[10,10],[0,10]]}]}"
 }
 
 ///|
 fn frame_line(
-  frame : Int,
+  frame : Int32,
   x : Double,
-  track_id? : Int = 1,
-  class_id? : Int = 0,
+  track_id~ : Int32 = 1,
+  class_id~ : Int32 = 0,
 ) -> String {
   "{\"frame\":\{frame},\"tracks\":[{\"track_id\":\{track_id},\"xyxy\":[\{x - 1.0},2,\{x + 1.0},5],\"class_id\":\{class_id}}],\"lost\":[],\"removed\":[]}"
 }

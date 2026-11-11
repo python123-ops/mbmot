@@ -1,36 +1,41 @@
 ///|
+#derive(FromJson)
 priv struct SequenceInput {
   name : String
   detections : String
   ground_truth : String
-} derive(FromJson)
+}
 
 ///|
+#derive(FromJson)
 priv struct BatchInput {
   sequences : Array[SequenceInput]
-} derive(FromJson)
+}
 
 ///|
+#derive(FromJson)
 priv struct BaselineMetric {
   match_iou_threshold : Double
   mota : Double
   idf1 : Double
-} derive(FromJson)
+}
 
 ///|
+#derive(FromJson)
 priv struct BaselineSequence {
   name : String
   report : BaselineMetric
-} derive(FromJson)
+}
 
 ///|
+#derive(FromJson)
 priv struct BaselineReport {
   sequences : Array[BaselineSequence]
   overall : BaselineMetric
-} derive(FromJson)
+}
 
 ///|
-extern "C" fn exit_process(code : Int) = "exit"
+extern "C" fn exit_process(code : Int32) = "exit"
 
 ///|
 async fn fail_command(message : String) -> Unit {

@@ -1,7 +1,8 @@
 ///|
+#derive(Debug, Eq)
 pub(all) suberror ReplayLineError {
-  ReplayLineError(line~ : Int, reason~ : String)
-} derive(Debug, Eq)
+  ReplayLineError(line~ : Int32, reason~ : String)
+}
 
 ///|
 pub extend ReplayLineError with Debug::{to_repr}
@@ -10,7 +11,7 @@ pub extend ReplayLineError with Debug::{to_repr}
 pub extend ReplayLineError with Eq::{equal, not_equal}
 
 ///|
-pub fn ReplayLineError::line(self : ReplayLineError) -> Int {
+pub fn ReplayLineError::line(self : ReplayLineError) -> Int32 {
   let ReplayLineError(line~, ..) = self
   line
 }
@@ -24,7 +25,7 @@ pub fn ReplayLineError::message(self : ReplayLineError) -> String {
 ///|
 pub struct ReplaySession {
   tracker : @mbmot.Tracker
-  mut lines_read : Int
+  mut lines_read : Int32
 }
 
 ///|
@@ -33,7 +34,7 @@ pub fn ReplaySession::new(config : @mbmot.TrackerConfig) -> ReplaySession {
 }
 
 ///|
-pub fn ReplaySession::lines_read(self : ReplaySession) -> Int {
+pub fn ReplaySession::lines_read(self : ReplaySession) -> Int32 {
   self.lines_read
 }
 

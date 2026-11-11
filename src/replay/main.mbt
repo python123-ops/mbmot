@@ -1,5 +1,5 @@
 ///|
-extern "C" fn exit_process(code : Int) = "exit"
+extern "C" fn exit_process(code : Int32) = "exit"
 
 ///|
 async fn main {

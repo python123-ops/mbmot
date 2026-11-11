@@ -5,7 +5,7 @@ fn detection(
   x2 : Double,
   y2 : Double,
   score : Double,
-  class_id : Int,
+  class_id : Int32,
 ) -> @mbmot.Detection raise {
   @mbmot.Detection::new(
     @mbmot.BoundingBox::new(x1, y1, x2, y2),
@@ -16,8 +16,8 @@ fn detection(
 
 ///|
 fn configured_tracker(
-  max_lost_frames : Int,
-  min_hits : Int,
+  max_lost_frames : Int32,
+  min_hits : Int32,
 ) -> @mbmot.Tracker raise {
   @mbmot.Tracker::new(
     @mbmot.TrackerConfig::new(

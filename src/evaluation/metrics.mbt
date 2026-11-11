@@ -34,8 +34,8 @@ fn bbox_iou(left : @mbmot.BoundingBox, right : @mbmot.BoundingBox) -> Double {
 ///|
 fn indices_by_frame(
   objects : Array[MotObject],
-  frames : Int,
-) -> Array[Array[Int]] {
+  frames : Int32,
+) -> Array[Array[Int32]] {
   let grouped = Array::makei(frames + 1, _ => [])
   for index, object in objects {
     grouped[object.frame].push(index)
@@ -44,7 +44,7 @@ fn indices_by_frame(
 }
 
 ///|
-fn id_index(ids : Array[Int], identity : Int) -> Int {
+fn id_index(ids : Array[Int32], identity : Int32) -> Int32 {
   match ids.search_by(id => id == identity) {
     Some(index) => index
     None => -1
@@ -52,8 +52,8 @@ fn id_index(ids : Array[Int], identity : Int) -> Int {
 }
 
 ///|
-fn unique_ids(objects : Array[MotObject]) -> Array[Int] {
-  let ids : Array[Int] = []
+fn unique_ids(objects : Array[MotObject]) -> Array[Int32] {
+  let ids : Array[Int32] = []
   for object in objects {
     if !ids.contains(object.identity) {
       ids.push(object.identity)
@@ -67,7 +67,7 @@ fn unique_ids(objects : Array[MotObject]) -> Array[Int] {
 fn maximum_frame(
   ground_truth : Array[MotObject],
   tracker_results : Array[MotObject],
-) -> Int {
+) -> Int32 {
   let mut maximum = 0
   for object in ground_truth {
     if object.frame > maximum {
@@ -83,7 +83,10 @@ fn maximum_frame(
 }
 
 ///|
-fn identity_counts(objects : Array[MotObject], ids : Array[Int]) -> Array[Int] {
+fn identity_counts(
+  objects : Array[MotObject],
+  ids : Array[Int32],
+) -> Array[Int32] {
   let counts = Array::make(ids.length(), 0)
   for object in objects {
     let index = id_index(ids, object.identity)
@@ -97,8 +100,8 @@ fn identity_metrics(
   ground_truth : Array[MotObject],
   tracker_results : Array[MotObject],
   threshold : Double,
-  frames : Int,
-) -> (Int, Int, Int) {
+  frames : Int32,
+) -> (Int32, Int32, Int32) {
   let ground_truth_ids = unique_ids(ground_truth)
   let tracker_ids = unique_ids(tracker_results)
   let ground_truth_counts = identity_counts(ground_truth, ground_truth_ids)
@@ -177,8 +180,8 @@ pub fn evaluate(
   config : EvaluationConfig,
 ) -> EvaluationReport {
   let frames = maximum_frame(ground_truth, tracker_results)
-  let last_frame_pairs : Array[(Int, Int)] = []
-  let last_identity_by_truth : Array[(Int, Int)] = []
+  let last_frame_pairs : Array[(Int32, Int32)] = []
+  let last_identity_by_truth : Array[(Int32, Int32)] = []
   let ground_truth_by_frame = indices_by_frame(ground_truth, frames)
   let tracker_by_frame = indices_by_frame(tracker_results, frames)
   let mut true_positives = 0
@@ -191,7 +194,7 @@ pub fn evaluate(
     let tracker_indices = tracker_by_frame[frame]
     let used_truth = Array::make(ground_truth_indices.length(), false)
     let used_tracker = Array::make(tracker_indices.length(), false)
-    let frame_matches : Array[(Int, Int)] = []
+    let frame_matches : Array[(Int32, Int32)] = []
     for previous_pair in last_frame_pairs {
       let (previous_truth_id, previous_tracker_id) = previous_pair
       let truth_position = ground_truth_indices.search_by(index => {
@@ -215,8 +218,8 @@ pub fn evaluate(
         _ => ()
       }
     }
-    let remaining_truth : Array[Int] = []
-    let remaining_tracker : Array[Int] = []
+    let remaining_truth : Array[Int32] = []
+    let remaining_tracker : Array[Int32] = []
     for position in 0..<ground_truth_indices.length() {
       if !used_truth[position] {
         remaining_truth.push(position)

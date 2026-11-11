@@ -16,21 +16,43 @@ moon run src/observe --target native -- examples/observe.rules.json < examples/o
 
 ## 安装与源码运行
 
-在 MoonBit 模块中加入 `0.3.0`：
+在 MoonBit 模块中加入 `0.3.1`：
 
 ```bash
-moon add python123-ops/mbmot@0.3.0
+moon add python123-ops/mbmot@0.3.1
 ```
 
 这个版本包含跟踪、空间事件、检测框转换、NDJSON 编解码、MOT 文件读写与评测，以及网站使用的 JavaScript 桥接源码。原生命令也随源码包提供。
 
-需要安装 MoonBit 工具链；当前 CI 使用 `moonc v0.10.14+7d59c7ec9`。检出仓库后可以运行四个稳定后端的检查和测试：
+需要安装 [MoonBit 工具链](https://www.moonbitlang.com/download/)；当前 CI 固定 `moonc v0.10.20+65efd5b93`，每周一另用 latest stable 复跑同一套检查。检出仓库后可以运行四个稳定后端的检查、构建和测试：
 
 ```bash
+moon version --all
+moon update
 moon fmt --check
 moon check --target all --deny-warn
+moon build --target all --deny-warn
 moon test --target all --deny-warn
 ```
+
+### 2026-11-11 兼容性维护
+
+本轮在 Windows x64 使用官方 latest stable 完成验证，`moon version --all` 的实际输出版本为：
+
+```text
+moon 0.1.20261104 (940aa18 2026-11-04)
+moonc v0.10.20+65efd5b93 (2026-11-05)
+moonrun 0.1.20261104 (940aa18 2026-11-04)
+Feature flags enabled: rr_moon_mod,rr_moon_pkg
+```
+
+`0.3.1` 将旧 `derive(...)` 迁移为 `#derive(...)`，并采用当前格式化器输出的 `Int32` 和带默认值的标签参数语法；保留原调用方式、跟踪算法、输出快照及 `async@0.21.3`。旧源码在当前工具链下会因废弃语法无法通过 `--deny-warn`。生成接口中的 `Int` 改为同一个 32 位整数类型的当前拼写 `Int32`，公开函数和数据契约保持不变。
+
+四后端检查和构建通过，wasm、wasm-gc、native 各 106 项测试通过，JavaScript 109 项通过。原生 CLI 的 replay、YOLO 转换、空间事件、MOT 评测、批处理回归门槛及错误前完整输出均已复核；90 帧录像的 native/browser 结果一致，浏览器桥接、工作台与重置重放通过。Python 3.11.18、OpenCV 4.13.0.92 的完整录像测试 11 项通过，覆盖 90 帧混合 YOLO 坐标转换和 MP4 渲染；README 的 PowerShell 重放入口也已运行。
+
+`examples/consumer` 固定验证已发布的 `0.3.0`，四后端各 1 项通过。`python tools/package_test.py` 则将当前候选包解压到仓库外，检查、构建并测试四后端、运行原生 replay，再用只包含归档源码的临时工作区验证公开 API，避免候选版本发布前误装注册表旧包。CI 在 Linux 复跑这些检查，失败时也保留工具链和检查日志 artifact；每周检查不会发布模块或部署 Pages。
+
+核心库支持 wasm、wasm-gc、JavaScript 和 native；流式 CLI 使用 native，浏览器桥接使用 JavaScript。录像示例需要 Python 3.10+ 和 OpenCV，不新增检测模型或平台承诺。本轮沿用仓库夹具，不重新下载 MOT 图像或运行检测模型，也不据此扩大支持的数据规模；长时间运行的内存与尾延迟需要另行测量。
 
 核心包的基本调用如下：
 

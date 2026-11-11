@@ -4,12 +4,12 @@ fn point(x : Double, y : Double) -> @analytics.Point raise {
 }
 
 ///|
-fn horizontal_line(id : Int) -> @analytics.DirectedLine raise {
+fn horizontal_line(id : Int32) -> @analytics.DirectedLine raise {
   @analytics.DirectedLine::new(id, point(0.0, 0.0), point(10.0, 0.0))
 }
 
 ///|
-fn square(id : Int) -> @analytics.PolygonRegion raise {
+fn square(id : Int32) -> @analytics.PolygonRegion raise {
   @analytics.PolygonRegion::new(id, [
     point(0.0, 0.0),
     point(10.0, 0.0),
@@ -19,16 +19,20 @@ fn square(id : Int) -> @analytics.PolygonRegion raise {
 }
 
 ///|
-fn sample_at(id : Int, x : Double, y : Double) -> @analytics.TrackSample raise {
+fn sample_at(
+  id : Int32,
+  x : Double,
+  y : Double,
+) -> @analytics.TrackSample raise {
   sample_at_class(id, x, y, 0)
 }
 
 ///|
 fn sample_at_class(
-  id : Int,
+  id : Int32,
   x : Double,
   y : Double,
-  class_id : Int,
+  class_id : Int32,
 ) -> @analytics.TrackSample raise {
   @analytics.TrackSample::new(
     id,
@@ -39,7 +43,7 @@ fn sample_at_class(
 
 ///|
 fn analyzer(
-  stable_frames : Int,
+  stable_frames : Int32,
   lines : Array[@analytics.DirectedLine],
   regions : Array[@analytics.PolygonRegion],
 ) -> @analytics.SpatialAnalyzer raise {

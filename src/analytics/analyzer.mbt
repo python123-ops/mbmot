@@ -1,71 +1,71 @@
 ///|
 priv struct LineState {
   mut has_stable : Bool
-  mut stable_side : Int
-  mut candidate_side : Int
-  mut candidate_count : Int
+  mut stable_side : Int32
+  mut candidate_side : Int32
+  mut candidate_count : Int32
 }
 
 ///|
 priv struct RegionState {
   mut stable_inside : Bool?
   mut candidate_inside : Bool?
-  mut candidate_count : Int
-  mut candidate_start : Int
-  mut entry_frame : Int?
+  mut candidate_count : Int32
+  mut candidate_start : Int32
+  mut entry_frame : Int32?
 }
 
 ///|
 priv struct TrackState {
-  track_id : Int
-  class_id : Int
+  track_id : Int32
+  class_id : Int32
   lines : Array[LineState]
   regions : Array[RegionState]
-  mut last_exit_region : Int?
+  mut last_exit_region : Int32?
 }
 
 ///|
 priv struct LineTotals {
-  mut left_to_right : Int
-  mut right_to_left : Int
-  unique_left_ids : Array[Int]
-  unique_right_ids : Array[Int]
+  mut left_to_right : Int32
+  mut right_to_left : Int32
+  unique_left_ids : Array[Int32]
+  unique_right_ids : Array[Int32]
 }
 
 ///|
 priv struct LineClassTotals {
-  class_id : Int
-  mut left_to_right : Int
-  mut right_to_left : Int
-  unique_left_ids : Array[Int]
-  unique_right_ids : Array[Int]
+  class_id : Int32
+  mut left_to_right : Int32
+  mut right_to_left : Int32
+  unique_left_ids : Array[Int32]
+  unique_right_ids : Array[Int32]
 }
 
 ///|
 priv struct RegionTotals {
-  mut entries : Int
-  mut exits : Int
-  unique_ids : Array[Int]
-  mut peak_occupancy : Int
-  mut completed_dwell_frames : Int
+  mut entries : Int32
+  mut exits : Int32
+  unique_ids : Array[Int32]
+  mut peak_occupancy : Int32
+  mut completed_dwell_frames : Int32
 }
 
 ///|
 priv struct RegionClassTotals {
-  class_id : Int
-  mut entries : Int
-  mut exits : Int
-  unique_ids : Array[Int]
-  mut peak_occupancy : Int
-  mut completed_dwell_frames : Int
+  class_id : Int32
+  mut entries : Int32
+  mut exits : Int32
+  unique_ids : Array[Int32]
+  mut peak_occupancy : Int32
+  mut completed_dwell_frames : Int32
 }
 
 ///|
 priv struct TransitionTotals {
-  from_region_id : Int
-  to_region_id : Int
-  class_id : Int
-  mut count : Int
+  from_region_id : Int32
+  to_region_id : Int32
+  class_id : Int32
+  mut count : Int32
 }
 
 ///|
@@ -75,19 +75,19 @@ struct SpatialAnalyzer {
   lines : Array[DirectedLine]
   regions : Array[PolygonRegion]
   mut tracks : Array[TrackState]
-  mut removed_ids : Array[Int]
+  mut removed_ids : Array[Int32]
   mut line_totals : Array[LineTotals]
   mut line_class_totals : Array[Array[LineClassTotals]]
   mut region_totals : Array[RegionTotals]
   mut region_class_totals : Array[Array[RegionClassTotals]]
   mut transition_totals : Array[TransitionTotals]
-  mut last_frame : Int?
+  mut last_frame : Int32?
 }
 
 ///|
 fn ensure_unique_rule_ids(
   kind : String,
-  ids : Array[Int],
+  ids : Array[Int32],
 ) -> Unit raise AnalyticsError {
   let sorted = ids.copy()
   sorted.sort()
@@ -172,8 +172,8 @@ fn TrackState::copy_state(self : TrackState) -> TrackState {
 ///|
 fn new_track_state(
   sample : TrackSample,
-  line_count : Int,
-  region_count : Int,
+  line_count : Int32,
+  region_count : Int32,
 ) -> TrackState {
   {
     track_id: sample.track_id,
@@ -196,7 +196,7 @@ fn new_track_state(
 }
 
 ///|
-fn find_track(states : Array[TrackState], track_id : Int) -> Int? {
+fn find_track(states : Array[TrackState], track_id : Int32) -> Int32? {
   for index, state in states {
     if state.track_id == track_id {
       return Some(index)
@@ -206,13 +206,13 @@ fn find_track(states : Array[TrackState], track_id : Int) -> Int? {
 }
 
 ///|
-fn contains_id(ids : Array[Int], id : Int) -> Bool {
+fn contains_id(ids : Array[Int32], id : Int32) -> Bool {
   ids.any(value => value == id)
 }
 
 ///|
-fn validate_id_list(ids : Array[Int]) -> Unit raise AnalyticsError {
-  let seen : Array[Int] = []
+fn validate_id_list(ids : Array[Int32]) -> Unit raise AnalyticsError {
+  let seen : Array[Int32] = []
   for id in ids {
     if id <= 0 {
       raise InvalidTrackId(id)
@@ -227,14 +227,14 @@ fn validate_id_list(ids : Array[Int]) -> Unit raise AnalyticsError {
 ///|
 fn validate_frame_inputs(
   states : Array[TrackState],
-  removed_ids : Array[Int],
+  removed_ids : Array[Int32],
   samples : Array[TrackSample],
-  lost : Array[Int],
-  removed : Array[Int],
+  lost : Array[Int32],
+  removed : Array[Int32],
 ) -> Unit raise AnalyticsError {
   validate_id_list(lost)
   validate_id_list(removed)
-  let visible_ids : Array[Int] = []
+  let visible_ids : Array[Int32] = []
   for sample in samples {
     if sample.track_id <= 0 {
       raise InvalidTrackId(sample.track_id)
@@ -301,10 +301,10 @@ fn RegionState::interrupt(self : RegionState) -> Unit {
 ///|
 fn advance_line(
   state : LineState,
-  side : Int,
-  stable_frames : Int,
-  line_id : Int,
-  track_id : Int,
+  side : Int32,
+  stable_frames : Int32,
+  line_id : Int32,
+  track_id : Int32,
   totals : LineTotals,
   class_totals : LineClassTotals,
   events : Array[AnalyticsEvent],
@@ -371,14 +371,14 @@ fn advance_line(
 }
 
 ///|
-fn remember_unique(totals : RegionTotals, track_id : Int) -> Unit {
+fn remember_unique(totals : RegionTotals, track_id : Int32) -> Unit {
   if !contains_id(totals.unique_ids, track_id) {
     totals.unique_ids.push(track_id)
   }
 }
 
 ///|
-fn remember_class_unique(totals : RegionClassTotals, track_id : Int) -> Unit {
+fn remember_class_unique(totals : RegionClassTotals, track_id : Int32) -> Unit {
   if !contains_id(totals.unique_ids, track_id) {
     totals.unique_ids.push(track_id)
   }
@@ -387,7 +387,7 @@ fn remember_class_unique(totals : RegionClassTotals, track_id : Int) -> Unit {
 ///|
 fn ensure_line_class_totals(
   totals : Array[LineClassTotals],
-  class_id : Int,
+  class_id : Int32,
 ) -> LineClassTotals {
   for total in totals {
     if total.class_id == class_id {
@@ -408,7 +408,7 @@ fn ensure_line_class_totals(
 ///|
 fn ensure_region_class_totals(
   totals : Array[RegionClassTotals],
-  class_id : Int,
+  class_id : Int32,
 ) -> RegionClassTotals {
   for total in totals {
     if total.class_id == class_id {
@@ -430,9 +430,9 @@ fn ensure_region_class_totals(
 ///|
 fn record_transition(
   totals : Array[TransitionTotals],
-  from_region_id : Int,
-  to_region_id : Int,
-  class_id : Int,
+  from_region_id : Int32,
+  to_region_id : Int32,
+  class_id : Int32,
 ) -> Unit {
   for total in totals {
     if total.from_region_id == from_region_id &&
@@ -449,12 +449,12 @@ fn record_transition(
 fn advance_transitions(
   state : TrackState,
   events : Array[AnalyticsEvent],
-  start : Int,
+  start : Int32,
   totals : Array[TransitionTotals],
 ) -> Unit {
   // Every event in this range belongs to one visible track. Record exits first,
   // independently of the numeric order of overlapping region rules.
-  let mut first_exit : Int? = None
+  let mut first_exit : Int32? = None
   for index in start..<events.length() {
     match events[index] {
       RegionExited(region_id~, ..) =>
@@ -488,8 +488,8 @@ fn advance_transitions(
 fn confirm_initial_region(
   state : RegionState,
   inside : Bool,
-  region_id : Int,
-  track_id : Int,
+  region_id : Int32,
+  track_id : Int32,
   totals : RegionTotals,
   class_totals : RegionClassTotals,
   events : Array[AnalyticsEvent],
@@ -510,11 +510,11 @@ fn confirm_initial_region(
 ///|
 fn advance_region(
   state : RegionState,
-  classification : Int,
-  frame_id : Int,
-  stable_frames : Int,
-  region_id : Int,
-  track_id : Int,
+  classification : Int32,
+  frame_id : Int32,
+  stable_frames : Int32,
+  region_id : Int32,
+  track_id : Int32,
   totals : RegionTotals,
   class_totals : RegionClassTotals,
   events : Array[AnalyticsEvent],
@@ -581,7 +581,7 @@ fn advance_region(
 }
 
 ///|
-fn event_key(event : AnalyticsEvent) -> (Int, Int, Int) {
+fn event_key(event : AnalyticsEvent) -> (Int32, Int32, Int32) {
   match event {
     LineCrossed(line_id~, track_id~, ..) => (0, line_id, track_id)
     RegionEntered(region_id~, track_id~, ..) => (1, region_id, track_id)
@@ -590,7 +590,7 @@ fn event_key(event : AnalyticsEvent) -> (Int, Int, Int) {
 }
 
 ///|
-fn compare_event(left : AnalyticsEvent, right : AnalyticsEvent) -> Int {
+fn compare_event(left : AnalyticsEvent, right : AnalyticsEvent) -> Int32 {
   let (left_kind, left_rule, left_track) = event_key(left)
   let (right_kind, right_rule, right_track) = event_key(right)
   if left_kind != right_kind {
@@ -604,11 +604,11 @@ fn compare_event(left : AnalyticsEvent, right : AnalyticsEvent) -> Int {
 
 ///|
 fn make_frame(
-  frame_id : Int,
+  frame_id : Int32,
   lines : Array[DirectedLine],
   regions : Array[PolygonRegion],
   states : Array[TrackState],
-  visible_ids : Array[Int],
+  visible_ids : Array[Int32],
   line_totals : Array[LineTotals],
   line_class_totals : Array[Array[LineClassTotals]],
   region_totals : Array[RegionTotals],
@@ -741,10 +741,10 @@ fn make_frame(
 /// Advances one frame atomically. Coordinates and rules must share one scale.
 pub fn SpatialAnalyzer::update(
   self : SpatialAnalyzer,
-  frame_id : Int,
+  frame_id : Int32,
   samples : Array[TrackSample],
-  lost : Array[Int],
-  removed : Array[Int],
+  lost : Array[Int32],
+  removed : Array[Int32],
 ) -> AnalyticsFrame raise AnalyticsError {
   match self.last_frame {
     Some(previous) if frame_id <= previous =>
@@ -897,7 +897,7 @@ pub fn SpatialAnalyzer::update(
 /// Accepts the visible and lifecycle output of an MBMOT tracker directly.
 pub fn SpatialAnalyzer::update_mbmot(
   self : SpatialAnalyzer,
-  frame_id : Int,
+  frame_id : Int32,
   frame_tracks : @mbmot.FrameTracks,
 ) -> AnalyticsFrame raise AnalyticsError {
   self.update(

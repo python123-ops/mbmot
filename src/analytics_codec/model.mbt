@@ -1,54 +1,61 @@
 ///|
+#derive(FromJson)
 priv struct InputAnalyticsConfig {
   anchor : String
-  stable_frames : Int
-} derive(FromJson)
+  stable_frames : Int32
+}
 
 ///|
+#derive(FromJson)
 priv struct InputLine {
-  id : Int
+  id : Int32
   start : Array[Double]
   end : Array[Double]
-  class_ids : Array[Int]?
-} derive(FromJson)
+  class_ids : Array[Int32]?
+}
 
 ///|
+#derive(FromJson)
 priv struct InputRegion {
-  id : Int
+  id : Int32
   vertices : Array[Array[Double]]
-  class_ids : Array[Int]?
-} derive(FromJson)
+  class_ids : Array[Int32]?
+}
 
 ///|
+#derive(FromJson)
 priv struct InputSetup {
   config : InputAnalyticsConfig
   lines : Array[InputLine]
   regions : Array[InputRegion]
-} derive(FromJson)
+}
 
 ///|
+#derive(FromJson)
 priv struct InputTrack {
-  track_id : Int
+  track_id : Int32
   xyxy : Array[Double]
-  class_id : Int
-} derive(FromJson)
+  class_id : Int32
+}
 
 ///|
+#derive(FromJson)
 priv struct InputFrame {
-  frame : Int
+  frame : Int32
   tracks : Array[InputTrack]
-  lost : Array[Int]
-  removed : Array[Int]
-} derive(FromJson)
+  lost : Array[Int32]
+  removed : Array[Int32]
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror AnalyticsReplayError {
   InvalidJson(String)
   InvalidSetup(String)
   InvalidFrame(String)
-  InvalidRule(kind~ : String, index~ : Int, reason~ : String)
-  InvalidTrack(index~ : Int, reason~ : String)
-} derive(Debug, Eq)
+  InvalidRule(kind~ : String, index~ : Int32, reason~ : String)
+  InvalidTrack(index~ : Int32, reason~ : String)
+}
 
 ///|
 pub fn AnalyticsReplayError::message(self : AnalyticsReplayError) -> String {
@@ -64,12 +71,13 @@ pub fn AnalyticsReplayError::message(self : AnalyticsReplayError) -> String {
 }
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror AnalyticsReplayLineError {
-  AnalyticsReplayLineError(line~ : Int, reason~ : String)
-} derive(Debug, Eq)
+  AnalyticsReplayLineError(line~ : Int32, reason~ : String)
+}
 
 ///|
-pub fn AnalyticsReplayLineError::line(self : AnalyticsReplayLineError) -> Int {
+pub fn AnalyticsReplayLineError::line(self : AnalyticsReplayLineError) -> Int32 {
   let AnalyticsReplayLineError(line~, ..) = self
   line
 }

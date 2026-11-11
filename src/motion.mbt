@@ -10,7 +10,7 @@ fn squared(value : Double) -> Double {
 }
 
 ///|
-fn matrix_index(row : Int, column : Int, width : Int) -> Int {
+fn matrix_index(row : Int32, column : Int32, width : Int32) -> Int32 {
   row * width + column
 }
 

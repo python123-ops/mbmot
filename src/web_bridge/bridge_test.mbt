@@ -2,18 +2,20 @@
 let setup = "{\"config\":{\"anchor\":\"bottom_center\",\"stable_frames\":1},\"lines\":[{\"id\":4,\"start\":[5,0],\"end\":[5,10]}],\"regions\":[{\"id\":7,\"vertices\":[[0,0],[10,0],[10,10],[0,10]]}]}"
 
 ///|
+#derive(FromJson)
 struct CreatedResult {
-  session_id : Int
-} derive(FromJson)
+  session_id : Int32
+}
 
 ///|
+#derive(FromJson)
 struct CreatedEnvelope {
   ok : Bool
   result : CreatedResult
-} derive(FromJson)
+}
 
 ///|
-fn create_test_session() -> Int raise {
+fn create_test_session() -> Int32 raise {
   let json = try! @json.parse(@web_bridge.mbmot_create(setup))
   let envelope : CreatedEnvelope = try! @json.from_json(json)
   assert_true(envelope.ok)

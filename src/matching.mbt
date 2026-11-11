@@ -1,11 +1,11 @@
 ///|
 priv struct MatchPair {
-  track_index : Int
-  detection_index : Int
+  track_index : Int32
+  detection_index : Int32
 }
 
 ///|
-fn hungarian(square : Array[Array[Double]]) -> Array[Int] {
+fn hungarian(square : Array[Array[Double]]) -> Array[Int32] {
   let size = square.length()
   if size == 0 {
     return []

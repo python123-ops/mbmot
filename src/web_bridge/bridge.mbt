@@ -6,10 +6,10 @@ priv struct BrowserSession {
 }
 
 ///|
-let sessions : Map[Int, BrowserSession] = Map([])
+let sessions : Map[Int32, BrowserSession] = Map([])
 
 ///|
-let next_session_id : Ref[Int] = Ref(1)
+let next_session_id : Ref[Int32] = Ref(1)
 
 ///|
 priv suberror BridgeFailure {
@@ -81,7 +81,7 @@ pub fn mbmot_create(config_json : String) -> String {
 }
 
 ///|
-pub fn mbmot_update(session_id : Int, frame_json : String) -> String {
+pub fn mbmot_update(session_id : Int32, frame_json : String) -> String {
   match sessions.get(session_id) {
     None => error_result("unknown_session", "session does not exist")
     Some(session) => {
@@ -94,7 +94,7 @@ pub fn mbmot_update(session_id : Int, frame_json : String) -> String {
 }
 
 ///|
-pub fn mbmot_reset(session_id : Int) -> String {
+pub fn mbmot_reset(session_id : Int32) -> String {
   match sessions.get(session_id) {
     None => error_result("unknown_session", "session does not exist")
     Some(session) => {
@@ -108,7 +108,7 @@ pub fn mbmot_reset(session_id : Int) -> String {
 }
 
 ///|
-pub fn mbmot_close(session_id : Int) -> String {
+pub fn mbmot_close(session_id : Int32) -> String {
   if sessions.contains(session_id) {
     sessions.remove(session_id)
     success_result("{\"closed\":true}")

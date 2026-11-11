@@ -5,7 +5,7 @@ fn cross(origin : Point, first : Point, second : Point) -> Double {
 }
 
 ///|
-fn sign(value : Double) -> Int {
+fn sign(value : Double) -> Int32 {
   if value > 0.0 {
     1
   } else if value < 0.0 {
@@ -43,7 +43,7 @@ fn segments_intersect(a : Point, b : Point, c : Point, d : Point) -> Bool {
 }
 
 ///|
-fn edges_adjacent(first : Int, second : Int, count : Int) -> Bool {
+fn edges_adjacent(first : Int32, second : Int32, count : Int32) -> Bool {
   first == second ||
   (first + 1) % count == second ||
   (second + 1) % count == first
@@ -51,7 +51,7 @@ fn edges_adjacent(first : Int, second : Int, count : Int) -> Bool {
 
 ///|
 fn validate_polygon(
-  id : Int,
+  id : Int32,
   vertices : Array[Point],
 ) -> Unit raise AnalyticsError {
   if id < 0 {
@@ -94,7 +94,7 @@ fn validate_polygon(
 
 ///|
 /// Returns -1 for outside, 0 for boundary and 1 for inside.
-fn PolygonRegion::classify(self : PolygonRegion, point : Point) -> Int {
+fn PolygonRegion::classify(self : PolygonRegion, point : Point) -> Int32 {
   let count = self.vertices.length()
   let mut inside = false
   for index = 0; index < count; index = index + 1 {
@@ -124,7 +124,7 @@ fn PolygonRegion::classify(self : PolygonRegion, point : Point) -> Int {
 
 ///|
 /// Returns -1 for the right side, 0 on the line and 1 for the left side.
-fn DirectedLine::classify(self : DirectedLine, point : Point) -> Int {
+fn DirectedLine::classify(self : DirectedLine, point : Point) -> Int32 {
   sign(cross(self.start, self.end, point))
 }
 

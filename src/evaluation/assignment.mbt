@@ -1,5 +1,5 @@
 ///|
-fn hungarian(square : Array[Array[Double]]) -> Array[Int] {
+fn hungarian(square : Array[Array[Double]]) -> Array[Int32] {
   let size = square.length()
   if size == 0 {
     return []
@@ -68,7 +68,7 @@ fn hungarian(square : Array[Array[Double]]) -> Array[Int] {
 fn maximum_iou_assignment(
   similarities : Array[Array[Double]],
   threshold : Double,
-) -> Array[(Int, Int)] {
+) -> Array[(Int32, Int32)] {
   let row_count = similarities.length()
   if row_count == 0 {
     return []
@@ -97,7 +97,7 @@ fn maximum_iou_assignment(
     })
   })
   let assignment = hungarian(square)
-  let matches : Array[(Int, Int)] = []
+  let matches : Array[(Int32, Int32)] = []
   for row in 0..<row_count {
     let column = assignment[row]
     if column >= 0 &&

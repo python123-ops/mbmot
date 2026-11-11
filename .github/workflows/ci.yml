@@ -3,18 +3,40 @@ name: Core checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * 1'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  BASH_ENV: ${{ github.workspace }}/_build/maintenance/log-shell.sh
 
 jobs:
   moonbit:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: ${{ fromJSON(github.event_name == 'schedule' && '["latest"]' || '["0.10.20+65efd5b93"]') }}
     steps:
       - uses: actions/checkout@v4
+      - name: Capture validation logs
+        run: |
+          mkdir -p _build/maintenance
+          cat > "$BASH_ENV" <<'EOF'
+          exec > >(tee -a "$GITHUB_WORKSPACE/_build/maintenance/checks.log") 2>&1
+          EOF
       - uses: hustcer/setup-moonbit@v1.25
         with:
-          version: 0.10.14+7d59c7ec9
-          core-version: 0.10.14+7d59c7ec9
+          version: ${{ matrix.toolchain }}
+          core-version: ${{ matrix.toolchain }}
       - name: Show toolchain
-        run: moon version --all
+        run: moon version --all | tee _build/maintenance/toolchain.log
       - name: Refresh package registry
         run: moon update
       - name: Check formatting
@@ -48,6 +70,8 @@ jobs:
         run: |
           moon -C examples/consumer update
           moon -C examples/consumer test --target all --deny-warn
+      - name: Verify the candidate archive and its consumer
+        run: python3 tools/package_test.py
       - name: Replay the checked-in stream
         run: |
           moon run src/replay --target native < examples/replay.ndjson > replay.actual.ndjson
@@ -128,3 +152,9 @@ jobs:
           test "$status" -ne 0
           test "$(wc -l < analytics.partial.ndjson)" -eq 1
           grep -F 'line 3: frame must increase: previous 1, received 1' analytics.error.txt
+      - name: Preserve toolchain and validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mbmot-validation-${{ matrix.toolchain }}
+          path: _build/maintenance/*.log

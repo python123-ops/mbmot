@@ -1,10 +1,11 @@
 ///|
 /// One detector observation supplied to a tracker update.
+#derive(Debug, Eq)
 pub struct Detection {
   bbox : BoundingBox
   score : Double
-  class_id : Int
-} derive(Debug, Eq)
+  class_id : Int32
+}
 
 ///|
 pub extend Detection with Debug::{to_repr}
@@ -26,7 +27,7 @@ fn Detection::valid(self : Detection) -> Bool {
 pub fn Detection::new(
   bbox : BoundingBox,
   score : Double,
-  class_id : Int,
+  class_id : Int32,
 ) -> Detection raise TrackerError {
   if !bbox.valid() {
     raise InvalidBoundingBox("detection contains an invalid box")
@@ -54,22 +55,23 @@ pub fn Detection::score(self : Detection) -> Double {
 
 ///|
 /// Returns the non-negative detector class identifier.
-pub fn Detection::class_id(self : Detection) -> Int {
+pub fn Detection::class_id(self : Detection) -> Int32 {
   self.class_id
 }
 
 ///|
 /// Settings that determine detection selection and identity association.
+#derive(Debug, Eq)
 pub struct TrackerConfig {
   high_score_threshold : Double
   low_score_threshold : Double
   new_track_threshold : Double
   first_match_max_cost : Double
   second_match_max_cost : Double
-  max_lost_frames : Int
-  min_hits : Int
+  max_lost_frames : Int32
+  min_hits : Int32
   fuse_score : Bool
-} derive(Debug, Eq)
+}
 
 ///|
 pub extend TrackerConfig with Debug::{to_repr}
@@ -90,8 +92,8 @@ pub fn TrackerConfig::new(
   new_track_threshold~ : Double,
   first_match_max_cost~ : Double,
   second_match_max_cost~ : Double,
-  max_lost_frames~ : Int,
-  min_hits~ : Int,
+  max_lost_frames~ : Int32,
+  min_hits~ : Int32,
   fuse_score~ : Bool,
 ) -> TrackerConfig raise TrackerError {
   if !valid_unit_interval(high_score_threshold) ||
@@ -173,13 +175,13 @@ pub fn TrackerConfig::second_match_max_cost(self : TrackerConfig) -> Double {
 
 ///|
 /// Returns the configured number of frames retained after a track is lost.
-pub fn TrackerConfig::max_lost_frames(self : TrackerConfig) -> Int {
+pub fn TrackerConfig::max_lost_frames(self : TrackerConfig) -> Int32 {
   self.max_lost_frames
 }
 
 ///|
 /// Returns the number of hits required before a track becomes visible.
-pub fn TrackerConfig::min_hits(self : TrackerConfig) -> Int {
+pub fn TrackerConfig::min_hits(self : TrackerConfig) -> Int32 {
   self.min_hits
 }
 
@@ -191,15 +193,16 @@ pub fn TrackerConfig::fuse_score(self : TrackerConfig) -> Bool {
 
 ///|
 /// A visible tracked object for one processed frame.
+#derive(Debug, Eq)
 pub struct Track {
-  track_id : Int
+  track_id : Int32
   bbox : BoundingBox
-  class_id : Int
+  class_id : Int32
   score : Double
-  first_frame : Int
-  last_frame : Int
-  hits : Int
-} derive(Debug, Eq)
+  first_frame : Int32
+  last_frame : Int32
+  hits : Int32
+}
 
 ///|
 pub extend Track with Debug::{to_repr}
@@ -209,7 +212,7 @@ pub extend Track with Eq::{equal, not_equal}
 
 ///|
 /// Returns the stable identity assigned by this tracker instance.
-pub fn Track::track_id(self : Track) -> Int {
+pub fn Track::track_id(self : Track) -> Int32 {
   self.track_id
 }
 
@@ -221,7 +224,7 @@ pub fn Track::bbox(self : Track) -> BoundingBox {
 
 ///|
 /// Returns the class identifier fixed when the track was created.
-pub fn Track::class_id(self : Track) -> Int {
+pub fn Track::class_id(self : Track) -> Int32 {
   self.class_id
 }
 
@@ -233,29 +236,30 @@ pub fn Track::score(self : Track) -> Double {
 
 ///|
 /// Returns the frame in which the identity was created.
-pub fn Track::first_frame(self : Track) -> Int {
+pub fn Track::first_frame(self : Track) -> Int32 {
   self.first_frame
 }
 
 ///|
 /// Returns the most recent frame associated with the identity.
-pub fn Track::last_frame(self : Track) -> Int {
+pub fn Track::last_frame(self : Track) -> Int32 {
   self.last_frame
 }
 
 ///|
 /// Returns the number of detector observations assigned to the identity.
-pub fn Track::hits(self : Track) -> Int {
+pub fn Track::hits(self : Track) -> Int32 {
   self.hits
 }
 
 ///|
 /// The visible tracks and lifecycle events produced by one update.
+#derive(Debug, Eq)
 struct FrameTracks {
   tracks : Array[Track]
-  lost : Array[Int]
-  removed : Array[Int]
-} derive(Debug, Eq)
+  lost : Array[Int32]
+  removed : Array[Int32]
+}
 
 ///|
 pub extend FrameTracks with Debug::{to_repr}
@@ -271,45 +275,45 @@ pub fn FrameTracks::tracks(self : FrameTracks) -> Array[Track] {
 
 ///|
 /// Returns identities that entered the recoverable lost state in this frame.
-pub fn FrameTracks::lost(self : FrameTracks) -> Array[Int] {
+pub fn FrameTracks::lost(self : FrameTracks) -> Array[Int32] {
   self.lost.copy()
 }
 
 ///|
 /// Returns identities permanently removed in this frame.
-pub fn FrameTracks::removed(self : FrameTracks) -> Array[Int] {
+pub fn FrameTracks::removed(self : FrameTracks) -> Array[Int32] {
   self.removed.copy()
 }
 
 ///|
 /// A read-only summary of identities retained by a tracker.
 struct TrackerStatus {
-  last_frame : Int?
-  active_count : Int
-  tentative_count : Int
-  lost_count : Int
+  last_frame : Int32?
+  active_count : Int32
+  tentative_count : Int32
+  lost_count : Int32
 }
 
 ///|
 /// Returns the most recently accepted frame, or `None` before the first update.
-pub fn TrackerStatus::last_frame(self : TrackerStatus) -> Int? {
+pub fn TrackerStatus::last_frame(self : TrackerStatus) -> Int32? {
   self.last_frame
 }
 
 ///|
 /// Returns the number of confirmed identities visible in the latest frame.
-pub fn TrackerStatus::active_count(self : TrackerStatus) -> Int {
+pub fn TrackerStatus::active_count(self : TrackerStatus) -> Int32 {
   self.active_count
 }
 
 ///|
 /// Returns the number of active identities still below `min_hits`.
-pub fn TrackerStatus::tentative_count(self : TrackerStatus) -> Int {
+pub fn TrackerStatus::tentative_count(self : TrackerStatus) -> Int32 {
   self.tentative_count
 }
 
 ///|
 /// Returns the number of confirmed identities retained for recovery.
-pub fn TrackerStatus::lost_count(self : TrackerStatus) -> Int {
+pub fn TrackerStatus::lost_count(self : TrackerStatus) -> Int32 {
   self.lost_count
 }

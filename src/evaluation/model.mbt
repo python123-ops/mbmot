@@ -2,7 +2,7 @@
 /// An error raised while parsing or evaluating MOT records.
 pub(all) suberror MotError {
   InvalidConfig(String)
-  InvalidMotLine(line~ : Int, message~ : String)
+  InvalidMotLine(line~ : Int32, message~ : String)
 }
 
 ///|
@@ -15,18 +15,19 @@ pub fn MotError::message(self : MotError) -> String {
 
 ///|
 /// One axis-aligned observation in a MOT sequence.
+#derive(Debug, Eq)
 pub struct MotObject {
-  frame : Int
-  identity : Int
+  frame : Int32
+  identity : Int32
   bbox : @mbmot.BoundingBox
   confidence : Double
-} derive(Debug, Eq)
+}
 
 ///|
 /// Creates a validated MOT observation.
 pub fn MotObject::new(
-  frame : Int,
-  identity : Int,
+  frame : Int32,
+  identity : Int32,
   bbox : @mbmot.BoundingBox,
   confidence : Double,
 ) -> MotObject raise MotError {
@@ -43,12 +44,12 @@ pub fn MotObject::new(
 }
 
 ///|
-pub fn MotObject::frame(self : MotObject) -> Int {
+pub fn MotObject::frame(self : MotObject) -> Int32 {
   self.frame
 }
 
 ///|
-pub fn MotObject::identity(self : MotObject) -> Int {
+pub fn MotObject::identity(self : MotObject) -> Int32 {
   self.identity
 }
 
@@ -64,9 +65,10 @@ pub fn MotObject::confidence(self : MotObject) -> Double {
 
 ///|
 /// Configuration shared by the CLEAR and identity metric calculations.
+#derive(Debug, Eq)
 pub struct EvaluationConfig {
   match_iou_threshold : Double
-} derive(Debug, Eq)
+}
 
 ///|
 pub fn EvaluationConfig::new(
@@ -93,20 +95,21 @@ pub fn EvaluationConfig::match_iou_threshold(self : EvaluationConfig) -> Double 
 
 ///|
 /// Aggregate CLEAR and identity measurements for one sequence.
+#derive(Debug, Eq)
 pub struct EvaluationReport {
   match_iou_threshold : Double
-  frames : Int
-  ground_truth_detections : Int
-  tracker_detections : Int
-  true_positives : Int
-  false_positives : Int
-  false_negatives : Int
-  identity_switches : Int
+  frames : Int32
+  ground_truth_detections : Int32
+  tracker_detections : Int32
+  true_positives : Int32
+  false_positives : Int32
+  false_negatives : Int32
+  identity_switches : Int32
   matched_iou_sum : Double
-  id_true_positives : Int
-  id_false_positives : Int
-  id_false_negatives : Int
-} derive(Debug, Eq)
+  id_true_positives : Int32
+  id_false_positives : Int32
+  id_false_negatives : Int32
+}
 
 ///|
 pub fn EvaluationReport::match_iou_threshold(self : EvaluationReport) -> Double {
@@ -114,39 +117,39 @@ pub fn EvaluationReport::match_iou_threshold(self : EvaluationReport) -> Double 
 }
 
 ///|
-pub fn EvaluationReport::frames(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::frames(self : EvaluationReport) -> Int32 {
   self.frames
 }
 
 ///|
 pub fn EvaluationReport::ground_truth_detections(
   self : EvaluationReport,
-) -> Int {
+) -> Int32 {
   self.ground_truth_detections
 }
 
 ///|
-pub fn EvaluationReport::tracker_detections(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::tracker_detections(self : EvaluationReport) -> Int32 {
   self.tracker_detections
 }
 
 ///|
-pub fn EvaluationReport::true_positives(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::true_positives(self : EvaluationReport) -> Int32 {
   self.true_positives
 }
 
 ///|
-pub fn EvaluationReport::false_positives(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::false_positives(self : EvaluationReport) -> Int32 {
   self.false_positives
 }
 
 ///|
-pub fn EvaluationReport::false_negatives(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::false_negatives(self : EvaluationReport) -> Int32 {
   self.false_negatives
 }
 
 ///|
-pub fn EvaluationReport::identity_switches(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::identity_switches(self : EvaluationReport) -> Int32 {
   self.identity_switches
 }
 
@@ -172,17 +175,17 @@ pub fn EvaluationReport::motp(self : EvaluationReport) -> Double {
 }
 
 ///|
-pub fn EvaluationReport::id_true_positives(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::id_true_positives(self : EvaluationReport) -> Int32 {
   self.id_true_positives
 }
 
 ///|
-pub fn EvaluationReport::id_false_positives(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::id_false_positives(self : EvaluationReport) -> Int32 {
   self.id_false_positives
 }
 
 ///|
-pub fn EvaluationReport::id_false_negatives(self : EvaluationReport) -> Int {
+pub fn EvaluationReport::id_false_negatives(self : EvaluationReport) -> Int32 {
   self.id_false_negatives
 }
 

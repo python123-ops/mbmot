@@ -1,7 +1,7 @@
 ///|
 fn object(
-  frame : Int,
-  identity : Int,
+  frame : Int32,
+  identity : Int32,
   x : Double,
 ) -> @evaluation.MotObject raise {
   @evaluation.MotObject::new(

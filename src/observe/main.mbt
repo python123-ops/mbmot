@@ -1,5 +1,5 @@
 ///|
-extern "C" fn exit_process(code : Int) = "exit"
+extern "C" fn exit_process(code : Int32) = "exit"
 
 ///|
 async fn fail(message : String) -> Unit {
@@ -17,7 +17,7 @@ async fn main {
     return
   }
   let mut input_format = "yolo"
-  let mut classes : Array[Int] = []
+  let mut classes : Array[Int32] = []
   let mut input_seen = false
   let mut classes_seen = false
   let mut index = 2

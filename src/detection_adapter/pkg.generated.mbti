@@ -9,16 +9,17 @@ import {
 // Values
 pub fn encode_replay_frame(YoloFrame) -> String
 
-pub fn parse_yolo_frame(StringView, class_ids? : Array[Int]) -> YoloFrame raise AdapterError
+pub fn parse_yolo_frame(StringView, class_ids? : Array[Int32]) -> YoloFrame raise AdapterError
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror AdapterError {
   InvalidJson(String)
   InvalidFrame(String)
-  InvalidDetection(index~ : Int, reason~ : String)
+  InvalidDetection(index~ : Int32, reason~ : String)
   InvalidClassFilter(String)
-  NonIncreasingFrame(previous~ : Int, received~ : Int)
-} derive(Eq, @debug.Debug)
+  NonIncreasingFrame(previous~ : Int32, received~ : Int32)
+}
 pub fn AdapterError::equal(Self, Self) -> Bool
 pub fn AdapterError::message(Self) -> String
 pub fn AdapterError::not_equal(Self, Self) -> Bool
@@ -26,19 +27,19 @@ pub fn AdapterError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub struct YoloFrame {
-  frame : Int
+  frame : Int32
   detections : Array[@mbmot.Detection]
 }
 pub fn YoloFrame::detections(Self) -> Array[@mbmot.Detection]
-pub fn YoloFrame::frame(Self) -> Int
+pub fn YoloFrame::frame(Self) -> Int32
 
 pub struct YoloSession {
-  classes : Array[Int]?
-  mut last_frame : Int
-  mut lines_read : Int
+  classes : Array[Int32]?
+  mut last_frame : Int32
+  mut lines_read : Int32
 }
-pub fn YoloSession::lines_read(Self) -> Int
-pub fn YoloSession::new(class_ids? : Array[Int]) -> Self raise AdapterError
+pub fn YoloSession::lines_read(Self) -> Int32
+pub fn YoloSession::new(class_ids? : Array[Int32]) -> Self raise AdapterError
 pub fn YoloSession::process_line(Self, StringView) -> String raise AdapterError
 
 // Type aliases

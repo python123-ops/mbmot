@@ -9,23 +9,25 @@ import {
 // Values
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror AnalyticsReplayError {
   InvalidJson(String)
   InvalidSetup(String)
   InvalidFrame(String)
-  InvalidRule(kind~ : String, index~ : Int, reason~ : String)
-  InvalidTrack(index~ : Int, reason~ : String)
-} derive(Eq, @debug.Debug)
+  InvalidRule(kind~ : String, index~ : Int32, reason~ : String)
+  InvalidTrack(index~ : Int32, reason~ : String)
+}
 pub fn AnalyticsReplayError::equal(Self, Self) -> Bool
 pub fn AnalyticsReplayError::message(Self) -> String
 pub fn AnalyticsReplayError::not_equal(Self, Self) -> Bool
 pub fn AnalyticsReplayError::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) suberror AnalyticsReplayLineError {
-  AnalyticsReplayLineError(line~ : Int, reason~ : String)
-} derive(Eq, @debug.Debug)
+  AnalyticsReplayLineError(line~ : Int32, reason~ : String)
+}
 pub fn AnalyticsReplayLineError::equal(Self, Self) -> Bool
-pub fn AnalyticsReplayLineError::line(Self) -> Int
+pub fn AnalyticsReplayLineError::line(Self) -> Int32
 pub fn AnalyticsReplayLineError::message(Self) -> String
 pub fn AnalyticsReplayLineError::not_equal(Self, Self) -> Bool
 pub fn AnalyticsReplayLineError::to_repr(Self) -> @debug.Repr
@@ -33,9 +35,9 @@ pub fn AnalyticsReplayLineError::to_repr(Self) -> @debug.Repr
 // Types and methods
 pub struct AnalyticsReplaySession {
   mut analyzer : @analytics.SpatialAnalyzer?
-  mut lines_read : Int
+  mut lines_read : Int32
 }
-pub fn AnalyticsReplaySession::lines_read(Self) -> Int
+pub fn AnalyticsReplaySession::lines_read(Self) -> Int32
 pub fn AnalyticsReplaySession::new() -> Self
 pub fn AnalyticsReplaySession::process_line(Self, StringView) -> String? raise AnalyticsReplayLineError
 

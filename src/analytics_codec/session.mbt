@@ -2,7 +2,7 @@
 /// Stateful line processor for the analytics NDJSON protocol.
 pub struct AnalyticsReplaySession {
   mut analyzer : @analytics.SpatialAnalyzer?
-  mut lines_read : Int
+  mut lines_read : Int32
 }
 
 ///|
@@ -11,7 +11,9 @@ pub fn AnalyticsReplaySession::new() -> AnalyticsReplaySession {
 }
 
 ///|
-pub fn AnalyticsReplaySession::lines_read(self : AnalyticsReplaySession) -> Int {
+pub fn AnalyticsReplaySession::lines_read(
+  self : AnalyticsReplaySession,
+) -> Int32 {
   self.lines_read
 }
 

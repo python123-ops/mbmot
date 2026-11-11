@@ -11,7 +11,11 @@ fn write_json_number(
 }
 
 ///|
-fn write_json_int(builder : StringBuilder, name : String, value : Int) -> Unit {
+fn write_json_int(
+  builder : StringBuilder,
+  name : String,
+  value : Int32,
+) -> Unit {
   builder.write_string("\"")
   builder.write_string(name)
   builder.write_string("\":")

@@ -1,27 +1,30 @@
 ///|
+#derive(FromJson)
 priv struct InputDetection {
   cxcywh : Array[Double]
   score : Double
-  class_id : Int
-} derive(FromJson)
+  class_id : Int32
+}
 
 ///|
+#derive(FromJson)
 priv struct InputFrame {
-  frame : Int
-  width : Int
-  height : Int
+  frame : Int32
+  width : Int32
+  height : Int32
   coordinates : String
   detections : Array[InputDetection]
-} derive(FromJson)
+}
 
 ///|
+#derive(Debug, Eq)
 pub(all) suberror AdapterError {
   InvalidJson(String)
   InvalidFrame(String)
-  InvalidDetection(index~ : Int, reason~ : String)
+  InvalidDetection(index~ : Int32, reason~ : String)
   InvalidClassFilter(String)
-  NonIncreasingFrame(previous~ : Int, received~ : Int)
-} derive(Debug, Eq)
+  NonIncreasingFrame(previous~ : Int32, received~ : Int32)
+}
 
 ///|
 pub extend AdapterError with Debug::{to_repr}
@@ -44,12 +47,12 @@ pub fn AdapterError::message(self : AdapterError) -> String {
 
 ///|
 pub struct YoloFrame {
-  frame : Int
+  frame : Int32
   detections : Array[@mbmot.Detection]
 }
 
 ///|
-pub fn YoloFrame::frame(self : YoloFrame) -> Int {
+pub fn YoloFrame::frame(self : YoloFrame) -> Int32 {
   self.frame
 }
 
@@ -64,7 +67,7 @@ fn finite(value : Double) -> Bool {
 }
 
 ///|
-fn validate_filter(classes : Array[Int]?) -> Unit raise AdapterError {
+fn validate_filter(classes : Array[Int32]?) -> Unit raise AdapterError {
   match classes {
     None => ()
     Some(ids) => {
@@ -86,7 +89,7 @@ fn validate_filter(classes : Array[Int]?) -> Unit raise AdapterError {
 }
 
 ///|
-fn accepts_class(classes : Array[Int]?, class_id : Int) -> Bool {
+fn accepts_class(classes : Array[Int32]?, class_id : Int32) -> Bool {
   match classes {
     None => true
     Some(ids) => ids.any(id => id == class_id)
@@ -99,7 +102,7 @@ fn accepts_class(classes : Array[Int]?, class_id : Int) -> Bool {
 /// outside the image, but must have finite coordinates and positive area.
 pub fn parse_yolo_frame(
   line : StringView,
-  class_ids? : Array[Int] = [],
+  class_ids~ : Array[Int32] = [],
 ) -> YoloFrame raise AdapterError {
   let classes = if class_ids.length() == 0 { None } else { Some(class_ids) }
   validate_filter(classes)
@@ -197,14 +200,14 @@ pub fn encode_replay_frame(frame : YoloFrame) -> String {
 
 ///|
 pub struct YoloSession {
-  classes : Array[Int]?
-  mut last_frame : Int
-  mut lines_read : Int
+  classes : Array[Int32]?
+  mut last_frame : Int32
+  mut lines_read : Int32
 }
 
 ///|
 pub fn YoloSession::new(
-  class_ids? : Array[Int] = [],
+  class_ids~ : Array[Int32] = [],
 ) -> YoloSession raise AdapterError {
   let classes = if class_ids.length() == 0 {
     None
@@ -237,6 +240,6 @@ pub fn YoloSession::process_line(
 }
 
 ///|
-pub fn YoloSession::lines_read(self : YoloSession) -> Int {
+pub fn YoloSession::lines_read(self : YoloSession) -> Int32 {
   self.lines_read
 }

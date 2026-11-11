@@ -1,13 +1,14 @@
 ///|
 /// Errors raised when an MBMOT value or frame violates its input contract.
+#derive(Debug)
 pub(all) suberror TrackerError {
   InvalidBoundingBox(String)
   InvalidScore(Double)
-  InvalidClassId(Int)
+  InvalidClassId(Int32)
   InvalidConfig(String)
-  NonIncreasingFrame(previous~ : Int, received~ : Int)
-  InvalidDetection(index~ : Int)
-} derive(Debug)
+  NonIncreasingFrame(previous~ : Int32, received~ : Int32)
+  InvalidDetection(index~ : Int32)
+}
 
 ///|
 pub extend TrackerError with Debug::{to_repr}

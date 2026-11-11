@@ -1,6 +1,6 @@
 name = "python123-ops/mbmot"
 
-version = "0.3.0"
+version = "0.3.1"
 
 repository = "https://github.com/python123-ops/mbmot"
 

@@ -1,11 +1,12 @@
 ///|
 /// An axis-aligned rectangle in continuous `xyxy` coordinates.
+#derive(Debug, Eq)
 pub struct BoundingBox {
   x1 : Double
   y1 : Double
   x2 : Double
   y2 : Double
-} derive(Debug, Eq)
+}
 
 ///|
 pub extend BoundingBox with Debug::{to_repr}
