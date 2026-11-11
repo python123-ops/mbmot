@@ -66,10 +66,16 @@ jobs:
         run: python3 tools/video_demo/test_pipeline.py
       - name: Generate interfaces
         run: moon info --target all
-      - name: Install published 0.3.0 in a separate module
+      - name: Install published 0.3.1 in a separate module
         run: |
           moon -C examples/consumer update
           moon -C examples/consumer test --target all --deny-warn
+      - name: Install published 0.3.1 native CLI outside the checkout
+        run: |
+          cd "$RUNNER_TEMP"
+          moon install python123-ops/mbmot/replay@0.3.1 --bin "$RUNNER_TEMP/mbmot-bin"
+          "$RUNNER_TEMP/mbmot-bin/replay" < "$GITHUB_WORKSPACE/examples/replay.ndjson" > replay.actual.ndjson
+          diff -u "$GITHUB_WORKSPACE/examples/replay.expected.ndjson" replay.actual.ndjson
       - name: Verify the candidate archive and its consumer
         run: python3 tools/package_test.py
       - name: Replay the checked-in stream

@@ -53,7 +53,7 @@ def main() -> None:
             shutil.copyfile(repository / "examples" / "consumer" / name, consumer / name)
         consumer_manifest = consumer / "moon.mod"
         consumer_manifest.write_text(
-            consumer_manifest.read_text(encoding="utf-8").replace("mbmot@0.3.0", f"mbmot@{version}"),
+            re.sub(r"mbmot@[^\"]+", f"mbmot@{version}", consumer_manifest.read_text(encoding="utf-8")),
             encoding="utf-8",
         )
         # Only the extracted archive is a workspace member. The checkout cannot

@@ -12,7 +12,7 @@ MBMOT 是一个用 MoonBit 编写的在线多目标跟踪库。它不读取图�
 moon run src/observe --target native -- examples/observe.rules.json < examples/observe.yolo.ndjson
 ```
 
-这七帧从 YOLO 风格中心框开始，输出逐帧的轨迹和空间事件；第 3 帧确认越线，第 4 帧丢失，第 5 帧恢复同一编号，第 7 帧确认离开区域。[完整输出](examples/observe.expected.ndjson)可逐行比较。若要确认发布包能在另一模块中使用，运行 `moon -C examples/consumer test --target all --deny-warn`；这个小模块固定安装 mooncakes.io 上的 `0.3.0`，调用检测框转换、跟踪、区域统计和 MOT 评测接口。
+这七帧从 YOLO 风格中心框开始，输出逐帧的轨迹和空间事件；第 3 帧确认越线，第 4 帧丢失，第 5 帧恢复同一编号，第 7 帧确认离开区域。[完整输出](examples/observe.expected.ndjson)可逐行比较。若要确认发布包能在另一模块中使用，运行 `moon -C examples/consumer test --target all --deny-warn`；这个小模块固定安装 mooncakes.io 上的 `0.3.1`，调用检测框转换、跟踪、区域统计和 MOT 评测接口。
 
 ## 安装与源码运行
 
@@ -50,7 +50,7 @@ Feature flags enabled: rr_moon_mod,rr_moon_pkg
 
 四后端检查和构建通过，wasm、wasm-gc、native 各 106 项测试通过，JavaScript 109 项通过。原生 CLI 的 replay、YOLO 转换、空间事件、MOT 评测、批处理回归门槛及错误前完整输出均已复核；90 帧录像的 native/browser 结果一致，浏览器桥接、工作台与重置重放通过。Python 3.11.18、OpenCV 4.13.0.92 的完整录像测试 11 项通过，覆盖 90 帧混合 YOLO 坐标转换和 MP4 渲染；README 的 PowerShell 重放入口也已运行。
 
-`examples/consumer` 固定验证已发布的 `0.3.0`，四后端各 1 项通过。`python tools/package_test.py` 则将当前候选包解压到仓库外，检查、构建并测试四后端、运行原生 replay，再用只包含归档源码的临时工作区验证公开 API，避免候选版本发布前误装注册表旧包。CI 在 Linux 复跑这些检查，失败时也保留工具链和检查日志 artifact；每周检查不会发布模块或部署 Pages。
+发布前还验证了已发布的 `0.3.0`，四后端各 1 项通过。`0.3.1` 发布后，`examples/consumer` 已切换到精确的 `0.3.1` 依赖并复跑同一组公开 API 测试；另在仓库外通过 `moon install python123-ops/mbmot/replay@0.3.1 --bin <独立目录>` 安装原生 CLI，核对 replay 样例输出。`python tools/package_test.py` 则将当前候选包解压到仓库外，检查、构建并测试四后端、运行原生 replay，再用只包含归档源码的临时工作区验证公开 API，避免候选版本发布前误装注册表旧包。CI 在 Linux 复跑这些检查，失败时也保留工具链和检查日志 artifact；每周检查不会发布模块或部署 Pages。
 
 核心库支持 wasm、wasm-gc、JavaScript 和 native；流式 CLI 使用 native，浏览器桥接使用 JavaScript。录像示例需要 Python 3.10+ 和 OpenCV，不新增检测模型或平台承诺。本轮沿用仓库夹具，不重新下载 MOT 图像或运行检测模型，也不据此扩大支持的数据规模；长时间运行的内存与尾延迟需要另行测量。
 
